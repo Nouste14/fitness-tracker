@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
   <title>Nour Fitness — Personal Tracker</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
@@ -15,11 +15,11 @@
     .hdr-logo{font-size:17px;font-weight:800;letter-spacing:.5px;color:var(--accent)}
     .hdr-sub{font-size:11px;color:var(--text2)}
     .hdr-streak{background:rgba(255,193,7,.1);color:var(--gold);padding:5px 11px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid rgba(255,193,7,.2)}
-    .nav{position:fixed;bottom:0;width:100%;background:rgba(20,20,26,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;z-index:200;max-width:640px;left:50%;transform:translateX(-50%)}
+    .nav{position:fixed;bottom:0;width:100%;background:rgba(20,20,26,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;z-index:200;max-width:640px;left:50%;transform:translateX(-50%);padding-bottom:env(safe-area-inset-bottom)}
     .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 2px 8px;cursor:pointer;border:none;background:none;color:var(--text2);font-size:9px;letter-spacing:.5px;gap:3px;transition:color .15s}
     .nb.act{color:var(--accent)}
     .nb svg{width:19px;height:19px}
-    .content{max-width:640px;margin:0 auto;padding:14px 14px 86px}
+    .content{max-width:640px;margin:0 auto;padding:14px 14px calc(86px + env(safe-area-inset-bottom))}
     .page{display:none}.page.act{display:block}
     .card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--border)}
     .card-title{font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;font-weight:700}
