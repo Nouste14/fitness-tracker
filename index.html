@@ -70,7 +70,7 @@
     /* REST TIMER */
     .rest-timer{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:300;background:var(--card);border:2px solid var(--accent);border-radius:20px;padding:14px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:280px;max-width:340px;transition:all .3s;opacity:0;pointer-events:none}
     .rest-timer.show{opacity:1;pointer-events:all}
-    .rt-circle{width:56px;height:56px;border-radius:50%;border:3px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+    .rt-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
     .rt-circle svg{position:absolute;top:0;left:0;width:56px;height:56px;transform:rotate(-90deg)}
     .rt-circle svg circle{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .9s linear}
     .rt-time{font-size:17px;font-weight:800;color:var(--accent);position:relative;z-index:1}
@@ -141,6 +141,10 @@
     .tab{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;white-space:nowrap;font-size:12px;font-weight:600;transition:all .15s}
     .tab.act{background:var(--accent);color:#000;border-color:var(--accent)}
     .pr-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .deload-banner{background:rgba(255,193,7,.07);border:1px solid rgba(255,193,7,.3);border-radius:14px;padding:16px;margin-bottom:14px}
+    .deload-banner-title{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+    .deload-banner p{font-size:13px;color:var(--text2);line-height:1.6}
+    .session-clock{font-size:13px;color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums}
     /* RPE colour badges */
     .rpe-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
     .rpe-low{background:rgba(0,230,118,.15);color:var(--accent)}
@@ -166,7 +170,10 @@
 <!-- ══════════════════════════════════════════ -->
 <div class="rest-timer" id="rest-timer">
   <div class="rt-circle">
-    <svg viewBox="0 0 56 56"><circle id="rt-arc" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="0"/></svg>
+    <svg viewBox="0 0 56 56">
+      <circle cx="28" cy="28" r="24" fill="none" stroke="var(--border)" stroke-width="3"/>
+      <circle id="rt-arc" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="0"/>
+    </svg>
     <span class="rt-time" id="rt-display">90</span>
   </div>
   <div class="rt-info">
@@ -185,6 +192,7 @@
   <!-- ══════ HOME ══════ -->
   <div class="page act" id="page-home">
     <div class="sg" id="stat-grid"></div>
+    <div id="deload-banner"></div>
     <div class="card"><div class="card-title">Next Session</div><div id="today-info"></div>
       <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="switchPage('workout')">+ Log Workout</button>
     </div>
@@ -205,7 +213,7 @@
   <div class="page" id="page-workout">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
       <div id="wo-date" style="font-size:12px;color:var(--text2);flex:1"></div>
-      <input type="date" id="wo-log-date" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:12px;"/>
+      <input type="date" id="wo-log-date" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:0 10px;border-radius:8px;font-size:12px;height:30px;line-height:30px;-webkit-appearance:none;appearance:none;min-width:0;width:auto;"/>
     </div>
 
     <!-- Rest timer settings (shown during active session) -->
@@ -229,7 +237,10 @@
     <div id="wo-body" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <span id="wo-type-label"></span>
-        <button class="btn btn-secondary btn-sm" onclick="resetWO()">Change</button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="session-clock" id="session-clock" style="display:none">⏱ 0:00</span>
+          <button class="btn btn-secondary btn-sm" onclick="resetWO()">Change</button>
+        </div>
       </div>
       <div id="wo-coach-tip"></div>
       <div id="wo-rest-block" style="display:none">
@@ -676,7 +687,47 @@ function renderHome(){
   document.getElementById('coach-note').textContent=COACH[days%COACH.length];
   const taken=creatineDays.includes(today());
   document.getElementById('creatine-info').innerHTML=`Today: <strong style="color:${taken?'var(--accent)':'var(--text2)'}">${taken?'✅ Taken':'⬜ Not logged'}</strong> · Total: <strong style="color:var(--accent)">${creatineDays.length} days</strong>`;
-  renderPRs();renderHomeInsights();
+  renderPRs();renderHomeInsights();renderDeloadBanner();
+}
+function renderDeloadBanner(){
+  const el=document.getElementById('deload-banner');
+  // Group workout sessions (not rest) by ISO week
+  const workSessions=sessions.filter(s=>s.type!=='rest'&&s.type!=='deload');
+  if(workSessions.length<12){el.innerHTML='';return}
+  const weekMap={};
+  workSessions.forEach(s=>{
+    const d=new Date(s.date+'T12:00:00');
+    const jan1=new Date(d.getFullYear(),0,1);
+    const wk=Math.ceil(((d-jan1)/864e5+jan1.getDay()+1)/7);
+    const key=d.getFullYear()+'-W'+wk;
+    weekMap[key]=(weekMap[key]||0)+1;
+  });
+  // Get last 6 weeks in order
+  const weekKeys=[];
+  for(let i=5;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i*7);const jan1=new Date(d.getFullYear(),0,1);const wk=Math.ceil(((d-jan1)/864e5+jan1.getDay()+1)/7);weekKeys.push(d.getFullYear()+'-W'+wk);}
+  const dedupedKeys=[...new Set(weekKeys)];
+  // Count consecutive hard weeks (3+ sessions) ending this week
+  let hardWeeks=0;
+  for(let i=dedupedKeys.length-1;i>=0;i--){
+    if((weekMap[dedupedKeys[i]]||0)>=3)hardWeeks++;
+    else break;
+  }
+  // Check if a deload was logged in last 14 days
+  const recentDeload=sessions.some(s=>s.type==='deload'&&daysSince(s.date)<=14);
+  if(hardWeeks>=4&&!recentDeload){
+    el.innerHTML=`<div class="deload-banner">
+      <div class="deload-banner-title">⚠️ Deload Week Recommended</div>
+      <p>You've trained hard for <strong style="color:var(--gold)">${hardWeeks} consecutive weeks</strong> with 3+ sessions each. Your body needs a deload — drop weights by 40% and halve your volume this week. This is how you come back stronger, not injured.<br><br>
+      <strong style="color:var(--text)">This week: same exercises, ~60% of your normal weight, 2–3 sets max.</strong> Log your sessions as usual — the tracker will reset this warning once you log a deload.</p>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="logDeloadWeek()">✅ Mark This as Deload Week</button>
+    </div>`;
+  } else {
+    el.innerHTML='';
+  }
+}
+function logDeloadWeek(){
+  sessions.push({id:Date.now(),date:today(),type:'deload',exercises:[],notes:'Deload week',savedAt:new Date().toISOString()});
+  ssv();toast('Deload week logged — come back fresh 💪');renderHome();
 }
 function renderPRs(){
   const prs={};
@@ -705,7 +756,26 @@ function renderHomeInsights(){
 // ═══════════════════════════════════════════════
 //  WORKOUT LOGGER
 // ═══════════════════════════════════════════════
-let activeType=null;
+let activeType=null, sessionStartTime=null, clockInterval=null;
+function startSessionClock(){
+  sessionStartTime=Date.now();
+  const el=document.getElementById('session-clock');
+  el.style.display='inline';
+  clearInterval(clockInterval);
+  clockInterval=setInterval(()=>{
+    const elapsed=Math.floor((Date.now()-sessionStartTime)/1000);
+    const m=Math.floor(elapsed/60),s=elapsed%60;
+    el.textContent=`⏱ ${m}:${String(s).padStart(2,'0')}`;
+  },1000);
+}
+function stopSessionClock(){
+  clearInterval(clockInterval);clockInterval=null;
+  const el=document.getElementById('session-clock');
+  if(el)el.style.display='none';
+  const mins=sessionStartTime?Math.round((Date.now()-sessionStartTime)/60000):0;
+  sessionStartTime=null;
+  return mins;
+}
 function renderWO(){
   document.getElementById('wo-date').textContent=fmtLong(today());
   document.getElementById('wo-log-date').value=today();
@@ -733,7 +803,7 @@ function selectType(t){
   document.getElementById('wo-coach-tip').innerHTML=p?`<div class="tn" style="margin-bottom:14px"><div class="tn-title">💬 Coach's Tip</div><p>${p.tip}</p></div>`:'';
   document.getElementById('wo-rest-block').style.display=t==='rest'?'block':'none';
   document.getElementById('wo-exercises-block').style.display=t==='rest'?'none':'block';
-  if(t!=='rest'&&p)buildExercises(p);
+  if(t!=='rest'&&p){buildExercises(p);startSessionClock();}
 }
 
 function buildExercises(p){
@@ -800,7 +870,7 @@ function onSetDone(ei,si,exName){
   btn.classList.toggle('done');
   if(btn.classList.contains('done'))startTimer(defaultRestSecs,exName);
 }
-function resetWO(){activeType=null;buildPicker();skipTimer()}
+function resetWO(){activeType=null;stopSessionClock();buildPicker();skipTimer()}
 
 function collectData(){
   const p=PROGRAM[activeType];if(!p)return[];
@@ -816,11 +886,12 @@ function getLogDate(){return document.getElementById('wo-log-date')?.value||toda
 function saveSession(){
   const exs=collectData();
   if(!exs.some(e=>e.sets.some(s=>s.done))){toast('Mark at least one set ✓');return}
-  const d=getLogDate();
-  sessions.push({id:Date.now(),date:d,type:activeType,exercises:exs,notes:document.getElementById('session-notes').value||'',savedAt:new Date().toISOString()});
-  ssv();skipTimer();toast(d===today()?'Session saved! 💪':`Session saved for ${fmt(d)} 💪`);document.getElementById('session-notes').value='';resetWO();switchPage('home');
+  const d=getLogDate(),dur=stopSessionClock();
+  sessions.push({id:Date.now(),date:d,type:activeType,exercises:exs,notes:document.getElementById('session-notes').value||'',duration:dur,savedAt:new Date().toISOString()});
+  ssv();skipTimer();toast(d===today()?`Session saved! ${dur?dur+'min 💪':'💪'}`:`Saved for ${fmt(d)} 💪`);document.getElementById('session-notes').value='';resetWO();switchPage('home');
 }
 function saveRest(){
+  stopSessionClock();
   const d=getLogDate();
   sessions.push({id:Date.now(),date:d,type:'rest',exercises:[],notes:document.getElementById('rest-notes').value||'',savedAt:new Date().toISOString()});
   ssv();toast(d===today()?'Rest day logged 😴':`Rest day logged for ${fmt(d)} 😴`);resetWO();switchPage('home');
@@ -853,7 +924,7 @@ function renderHistory(){
     return`<div class="hi" onclick="document.getElementById('hd-${s.id}').classList.toggle('open')">
       <div class="hi-header"><div>
         <div style="font-size:14px;font-weight:700;margin-bottom:4px">${fmtLong(s.date)}</div>
-        <div style="display:flex;align-items:center;gap:8px">${badge}${vol?`<span style="font-size:11px;color:var(--text2)">Vol: ${vol.toLocaleString()} kg</span>`:''}</div>
+        <div style="display:flex;align-items:center;gap:8px">${badge}${vol?`<span style="font-size:11px;color:var(--text2)">Vol: ${vol.toLocaleString()} kg</span>`:''}${s.duration?`<span style="font-size:11px;color:var(--text2)">⏱ ${s.duration}min</span>`:''}</div>
       </div><span style="color:var(--text3);font-size:18px">›</span></div>
       <div class="hi-detail" id="hd-${s.id}">${rows}${s.notes?`<div style="margin-top:8px;font-style:italic">"${s.notes}"</div>`:''}
         <button class="btn btn-danger btn-sm" style="margin-top:10px" onclick="event.stopPropagation();delSess(${s.id})">Delete</button>
