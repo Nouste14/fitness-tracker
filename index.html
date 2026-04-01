@@ -193,13 +193,20 @@
     <div class="card"><div class="card-title">Personal Records 🏆</div><div id="pr-list"></div></div>
     <div class="card"><div class="card-title">Creatine Tracker 💊</div>
       <div id="creatine-info" style="font-size:13px;color:var(--text2);margin-bottom:10px"></div>
-      <button class="btn btn-secondary btn-sm" onclick="logCreatine()">✅ Mark Today's Creatine</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="logCreatine()">✅ Mark Today's Creatine</button>
+        <input type="date" id="creatine-backdate" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:12px;" title="Log for a past date"/>
+        <button class="btn btn-secondary btn-sm" onclick="logCreatineDate()">Log Past Date</button>
+      </div>
     </div>
   </div>
 
   <!-- ══════ WORKOUT LOG ══════ -->
   <div class="page" id="page-workout">
-    <div id="wo-date" style="font-size:12px;color:var(--text2);margin-bottom:12px"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div id="wo-date" style="font-size:12px;color:var(--text2);flex:1"></div>
+      <input type="date" id="wo-log-date" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:12px;"/>
+    </div>
 
     <!-- Rest timer settings (shown during active session) -->
     <div id="timer-settings-bar" style="display:none">
@@ -701,6 +708,7 @@ function renderHomeInsights(){
 let activeType=null;
 function renderWO(){
   document.getElementById('wo-date').textContent=fmtLong(today());
+  document.getElementById('wo-log-date').value=today();
   if(!activeType)buildPicker();
 }
 function buildPicker(){
@@ -804,17 +812,27 @@ function collectData(){
     }).filter(Boolean)};
   });
 }
+function getLogDate(){return document.getElementById('wo-log-date')?.value||today()}
 function saveSession(){
   const exs=collectData();
   if(!exs.some(e=>e.sets.some(s=>s.done))){toast('Mark at least one set ✓');return}
-  sessions.push({id:Date.now(),date:today(),type:activeType,exercises:exs,notes:document.getElementById('session-notes').value||'',savedAt:new Date().toISOString()});
-  ssv();skipTimer();toast('Session saved! 💪');document.getElementById('session-notes').value='';resetWO();switchPage('home');
+  const d=getLogDate();
+  sessions.push({id:Date.now(),date:d,type:activeType,exercises:exs,notes:document.getElementById('session-notes').value||'',savedAt:new Date().toISOString()});
+  ssv();skipTimer();toast(d===today()?'Session saved! 💪':`Session saved for ${fmt(d)} 💪`);document.getElementById('session-notes').value='';resetWO();switchPage('home');
 }
 function saveRest(){
-  sessions.push({id:Date.now(),date:today(),type:'rest',exercises:[],notes:document.getElementById('rest-notes').value||'',savedAt:new Date().toISOString()});
-  ssv();toast('Rest day logged 😴');resetWO();switchPage('home');
+  const d=getLogDate();
+  sessions.push({id:Date.now(),date:d,type:'rest',exercises:[],notes:document.getElementById('rest-notes').value||'',savedAt:new Date().toISOString()});
+  ssv();toast(d===today()?'Rest day logged 😴':`Rest day logged for ${fmt(d)} 😴`);resetWO();switchPage('home');
 }
 function logCreatine(){const t=today();if(creatineDays.includes(t)){toast('Already logged ✅');return}creatineDays.push(t);csv();toast('Creatine ✅ logged!');renderHome()}
+function logCreatineDate(){
+  const d=document.getElementById('creatine-backdate').value;
+  if(!d){toast('Pick a date first');return}
+  if(creatineDays.includes(d)){toast(`Already logged for ${fmt(d)}`);return}
+  creatineDays.push(d);csv();toast(`Creatine logged for ${fmt(d)} ✅`);
+  document.getElementById('creatine-backdate').value='';renderHome();
+}
 
 // ═══════════════════════════════════════════════
 //  HISTORY
