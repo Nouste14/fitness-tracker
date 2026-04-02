@@ -176,12 +176,16 @@
     .swap-opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
     .swap-opt{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 14px;text-align:left;font-size:13px;cursor:pointer;transition:background .12s}
     .swap-opt:active{background:var(--card3)}
+    /* Bar weight selector */
+    .bar-sel{background:var(--card3);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s}
+    .bar-sel.act{background:rgba(0,230,118,.12);border-color:rgba(0,230,118,.35);color:var(--accent)}
     /* Heatmap */
-    .heatmap-wrap{display:flex;gap:20px;justify-content:center;margin:8px 0}
-    .heatmap-side{text-align:center;font-size:9px;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;font-weight:700}
-    .heatmap-legend{display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap}
-    .hm-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)}
-    .hm-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .hm-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:4px 0}
+    .hm-tile{border-radius:10px;padding:10px 8px;border:1px solid var(--border);transition:all .2s;cursor:default}
+    .hm-tile-name{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px}
+    .hm-bar-track{background:rgba(255,255,255,.06);border-radius:4px;height:4px;overflow:hidden}
+    .hm-bar-fill{height:4px;border-radius:4px;transition:width .4s ease}
+    .hm-vol{font-size:9px;color:var(--text2);margin-top:4px}
   </style>
 </head>
 <body>
@@ -569,28 +573,40 @@ function toast(m){const e=document.getElementById('toast');e.textContent=m;e.cla
 // ═══════════════════════════════════════════════
 //  PLATE CALCULATOR
 // ═══════════════════════════════════════════════
-const BAR_WEIGHT=20; // kg
+const BAR_WEIGHT=20; // kg default
 const PLATES=[20,15,10,5,2.5,1.25]; // per side
 const PLATE_CLASS={20:'p20',15:'p15',10:'p10',5:'p5',2.5:'p2h',1.25:'p1h'};
+let barWeights={}; // ei → selected bar kg
 
-function calcPlates(totalKg){
-  const perSide=(totalKg-BAR_WEIGHT)/2;
+function setBar(ei,kg,btn){
+  barWeights[ei]=kg;
+  document.querySelectorAll('#pc-'+ei+' .bar-sel').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  // recalculate with first set's weight
+  const w=document.getElementById('w-'+ei+'-0')?.value;
+  const pr=document.getElementById('pr-'+ei);
+  if(pr&&w)renderPlates(w,pr,kg);
+}
+function calcPlates(totalKg,barKg){
+  const bw=barKg||BAR_WEIGHT;
+  const perSide=(totalKg-bw)/2;
   if(perSide<0)return null;
   let rem=perSide, result=[];
   for(const p of PLATES){const n=Math.floor(rem/p);if(n>0){result.push({plate:p,count:n});rem=Math.round((rem-n*p)*100)/100}}
-  return {perSide,plates:result,leftover:rem};
+  return {perSide,plates:result,leftover:rem,barKg:bw};
 }
-function renderPlates(totalKg, containerEl){
+function renderPlates(totalKg, containerEl, barKg){
   if(!containerEl)return;
   const val=parseFloat(totalKg);
+  const bw=barKg||BAR_WEIGHT;
   if(!val||val<=0){containerEl.innerHTML='';return}
-  if(val<BAR_WEIGHT){containerEl.innerHTML=`<div style="color:var(--red);font-size:12px">Bar alone is ${BAR_WEIGHT}kg</div>`;return}
-  const r=calcPlates(val);
+  if(val<bw){containerEl.innerHTML=`<div style="color:var(--red);font-size:12px">Bar alone is ${bw}kg</div>`;return}
+  const r=calcPlates(val,bw);
   if(!r){containerEl.innerHTML='';return}
-  if(r.plates.length===0&&r.leftover===0){containerEl.innerHTML=`<div style="color:var(--text2);font-size:12px">Just the bar (${BAR_WEIGHT}kg)</div>`;return}
+  if(r.plates.length===0&&r.leftover===0){containerEl.innerHTML=`<div style="color:var(--text2);font-size:12px">Just the bar (${bw}kg)</div>`;return}
   let html=`<div style="font-size:11px;color:var(--text2);margin-bottom:6px">Each side (${r.perSide}kg):</div><div class="plate-result">`;
   r.plates.forEach(({plate,count})=>{for(let i=0;i<count;i++)html+=`<span class="plate ${PLATE_CLASS[plate]||'p1h'}">${plate}</span>`});
-  if(r.leftover>0)html+=`<span style="color:var(--red);font-size:11px">+${r.leftover}kg can't be made with standard plates</span>`;
+  if(r.leftover>0)html+=`<span style="color:var(--red);font-size:11px">+${r.leftover}kg can't be made</span>`;
   html+=`</div>`;
   containerEl.innerHTML=html;
 }
@@ -720,6 +736,7 @@ const ALTERNATIVES={
   'Calves':['Seated Calf Raise','Standing Calf Raise','Leg Press Calf Raise','Single-Leg Calf Raise']
 };
 let swapEI=null;
+let currentSwaps={}; // ei → swapped exercise name (persists across nav during same session)
 function openSwap(ei){
   swapEI=ei;
   const nameEl=document.getElementById('exn-'+ei);
@@ -735,6 +752,7 @@ function openSwap(ei){
 function confirmSwap(btn){
   if(swapEI===null)return;
   const newName=btn.textContent;
+  currentSwaps[swapEI]=newName; // persist for this session
   const nameEl=document.getElementById('exn-'+swapEI);
   if(nameEl)nameEl.textContent=newName;
   closeSwap();
@@ -750,7 +768,6 @@ function closeSwap(){
 // ═══════════════════════════════════════════════
 function renderHeatmap(containerId){
   const el=document.getElementById(containerId);if(!el)return;
-  // 7-day volume per muscle group
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);
   const cutStr=cutoff.toISOString().slice(0,10);
   const mVol={};
@@ -759,65 +776,28 @@ function renderHeatmap(containerId){
     const v=(ex.sets||[]).filter(st=>st.done).reduce((a,st)=>a+(+st.weight||0)*(+st.reps||0),0);
     mVol[mg]=(mVol[mg]||0)+v;
   }));
-  const maxV=Math.max(...Object.values(mVol),1);
-  function hmc(muscles){
-    const v=muscles.reduce((a,m)=>a+(mVol[m]||0),0);
-    if(!v)return'rgba(255,255,255,0.05)';
+  const ORDER=['Chest','Shoulders','Back','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves'];
+  const maxV=Math.max(...ORDER.map(m=>mVol[m]||0),1);
+  function tileStyle(v){
+    if(!v)return{bg:'var(--card2)',border:'var(--border)',bar:'rgba(255,255,255,.12)',nameCol:'var(--text2)'};
     const p=v/maxV;
-    if(p<0.3)return'rgba(108,123,255,0.55)';
-    if(p<0.65)return'rgba(255,193,7,0.65)';
-    return'rgba(255,109,59,0.8)';
+    if(p<0.3)return{bg:'rgba(108,123,255,.08)',border:'rgba(108,123,255,.3)',bar:'var(--legs)',nameCol:'var(--legs)'};
+    if(p<0.65)return{bg:'rgba(255,193,7,.08)',border:'rgba(255,193,7,.35)',bar:'var(--gold)',nameCol:'var(--gold)'};
+    return{bg:'rgba(255,109,59,.1)',border:'rgba(255,109,59,.4)',bar:'var(--push)',nameCol:'var(--push)'};
   }
-  const bg='#1a1a24',st='#2a2a3e',sw=1.5;
-  function bodySVG(front){
-    const regions=front?[
-      {cx:70,cy:97,rx:24,ry:18,m:['Chest']},
-      {cx:29,cy:82,rx:14,ry:12,m:['Shoulders']},
-      {cx:111,cy:82,rx:14,ry:12,m:['Shoulders']},
-      {cx:25,cy:98,rx:8,ry:16,m:['Biceps']},
-      {cx:115,cy:98,rx:8,ry:16,m:['Biceps']},
-      {cx:52,cy:215,rx:12,ry:33,m:['Quads']},
-      {cx:88,cy:215,rx:12,ry:33,m:['Quads']},
-      {cx:53,cy:292,rx:9,ry:22,m:['Calves']},
-      {cx:87,cy:292,rx:9,ry:22,m:['Calves']},
-    ]:[
-      {cx:70,cy:110,rx:28,ry:34,m:['Back']},
-      {cx:25,cy:98,rx:8,ry:16,m:['Triceps']},
-      {cx:115,cy:98,rx:8,ry:16,m:['Triceps']},
-      {cx:52,cy:185,rx:16,ry:16,m:['Glutes']},
-      {cx:88,cy:185,rx:16,ry:16,m:['Glutes']},
-      {cx:52,cy:222,rx:11,ry:22,m:['Hamstrings']},
-      {cx:88,cy:222,rx:11,ry:22,m:['Hamstrings']},
-      {cx:53,cy:292,rx:9,ry:22,m:['Calves']},
-      {cx:87,cy:292,rx:9,ry:22,m:['Calves']},
-    ];
-    return`<svg viewBox="0 0 140 340" width="125" height="305" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="70" cy="27" rx="22" ry="24" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="63" y="49" width="14" height="14" rx="4" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="38" y="63" width="64" height="88" rx="12" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <ellipse cx="70" cy="158" rx="28" ry="12" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="19" y="65" width="20" height="64" rx="9" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="101" y="65" width="20" height="64" rx="9" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="22" y="132" width="15" height="50" rx="6" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="103" y="132" width="15" height="50" rx="6" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="40" y="168" width="27" height="86" rx="10" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="73" y="168" width="27" height="86" rx="10" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="42" y="257" width="23" height="72" rx="8" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      <rect x="75" y="257" width="23" height="72" rx="8" fill="${bg}" stroke="${st}" stroke-width="${sw}"/>
-      ${regions.map(r=>`<ellipse cx="${r.cx}" cy="${r.cy}" rx="${r.rx}" ry="${r.ry}" fill="${hmc(r.m)}"/>`).join('')}
-    </svg>`;
-  }
-  el.innerHTML=`<div class="heatmap-wrap">
-    <div class="heatmap-side"><div style="margin-bottom:4px">FRONT</div>${bodySVG(true)}</div>
-    <div class="heatmap-side"><div style="margin-bottom:4px">BACK</div>${bodySVG(false)}</div>
-  </div>
-  <div class="heatmap-legend">
-    <div class="hm-item"><div class="hm-dot" style="background:rgba(255,255,255,.06)"></div>None</div>
-    <div class="hm-item"><div class="hm-dot" style="background:rgba(108,123,255,.6)"></div>Low</div>
-    <div class="hm-item"><div class="hm-dot" style="background:rgba(255,193,7,.7)"></div>Moderate</div>
-    <div class="hm-item"><div class="hm-dot" style="background:rgba(255,109,59,.85)"></div>High</div>
-  </div>
-  <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:6px">Based on last 7 days of logged sessions</div>`;
+  const tiles=ORDER.map(mg=>{
+    const v=mVol[mg]||0;
+    const s=tileStyle(v);
+    const pct=Math.round(v/maxV*100);
+    const label=v>999?(v/1000).toFixed(1)+'k':v>0?v+'':'—';
+    return`<div class="hm-tile" style="background:${s.bg};border-color:${s.border}">
+      <div class="hm-tile-name" style="color:${s.nameCol}">${mg}</div>
+      <div class="hm-bar-track"><div class="hm-bar-fill" style="width:${v?Math.max(pct,8):0}%;background:${s.bar}"></div></div>
+      <div class="hm-vol">${v?label+' kg':'Rest'}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div class="hm-grid">${tiles}</div>
+  <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:4px">Last 7 days · coloured by relative volume</div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -984,16 +964,18 @@ function buildExercises(p){
   p.exercises.forEach((ex,i)=>{
     const isLower=lowerTypes.includes(activeType);
     const defSets=ex.sets||3;
+    // Use swapped name if one was set earlier this session
+    const displayName=currentSwaps[i]||ex.name;
     let prefills=[];
-    if(lastSame){const prev=(lastSame.exercises||[]).find(e=>e.name===ex.name);if(prev)prefills=prev.sets.map(s=>({reps:s.reps||'',weight:s.weight||''}))}
+    if(lastSame){const prev=(lastSame.exercises||[]).find(e=>e.name===displayName);if(prev)prefills=prev.sets.map(s=>({reps:s.reps||'',weight:s.weight||''}))}
     while(prefills.length<defSets)prefills.push({reps:'',weight:''});
-    // Overload suggestion
-    const sug=getOverloadSuggestion(ex.name,isLower);
+    // Overload suggestion uses displayed (possibly swapped) name
+    const sug=getOverloadSuggestion(displayName,isLower);
     const sugHTML=sug?`<div class="ex-suggest">${sug.type==='increase'?'🎯':'💪'} ${sug.msg}</div>`:'';
     // Last session note (only if no suggestion)
     let lastHTML='';
     if(!sug&&lastSame){
-      const prev=(lastSame.exercises||[]).find(e=>e.name===ex.name);
+      const prev=(lastSame.exercises||[]).find(e=>e.name===displayName);
       if(prev){
         const doneSets=(prev.sets||[]).filter(s=>s.done&&+s.weight);
         if(doneSets.length){const b=doneSets.reduce((b,s)=>+s.weight>+b.weight?s:b,{weight:0,reps:0});const e1=est1RM(+b.weight,+b.reps);lastHTML=`<div class="ex-last">📅 ${fmt(lastSame.date)} · Best: <strong>${b.weight}kg × ${b.reps}</strong>${e1?` (Est. 1RM: ${e1}kg)`:''}</div>`}
@@ -1001,7 +983,7 @@ function buildExercises(p){
     }
     const div=document.createElement('div');div.className='ex-item';div.id='ex-'+i;
     div.innerHTML=`<div class="ex-header">
-      <div class="ex-name" id="exn-${i}">${ex.name}</div>
+      <div class="ex-name" id="exn-${i}">${displayName}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <button class="swap-btn" onclick="openSwap(${i})">⇄ Swap</button>
         <span style="font-size:11px;color:var(--text2)">${defSets}×${ex.reps}</span>
@@ -1012,7 +994,13 @@ function buildExercises(p){
     // Equipment-aware plate info
     if(ex.eq==='barbell'){
       const pcDiv=document.createElement('div');pcDiv.className='plate-calc';pcDiv.id='pc-'+i;
-      pcDiv.innerHTML=`<div class="plate-calc-title">🔢 Plates per side (${BAR_WEIGHT}kg bar)</div><div class="plate-result" id="pr-${i}"></div>`;
+      pcDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div class="plate-calc-title" style="margin-bottom:0">🔢 Plates per side</div>
+        <div style="display:flex;gap:4px">
+          <button class="bar-sel act" onclick="setBar(${i},20,this)">20kg bar</button>
+          <button class="bar-sel" onclick="setBar(${i},10,this)">10kg EZ</button>
+        </div>
+      </div><div class="plate-result" id="pr-${i}"></div>`;
       div.appendChild(pcDiv);
     } else if(ex.eq==='dumbbell'){
       const dbDiv=document.createElement('div');dbDiv.id='pc-'+i;
@@ -1025,8 +1013,9 @@ function buildExercises(p){
     for(let s=0;s<defSets;s++)appendSetRow(tbody,i,s,prefills[s]||{},ex.name);
     // Pre-fill plate calc from suggestion or last (barbell only)
     if(ex.eq==='barbell'){
-      if(sug&&sug.w)renderPlates(sug.w,document.getElementById('pr-'+i));
-      else if(prefills[0]?.weight)renderPlates(prefills[0].weight,document.getElementById('pr-'+i));
+      const bw=barWeights[i]||BAR_WEIGHT;
+      if(sug&&sug.w)renderPlates(sug.w,document.getElementById('pr-'+i),bw);
+      else if(prefills[0]?.weight)renderPlates(prefills[0].weight,document.getElementById('pr-'+i),bw);
     }
   });
 }
@@ -1055,7 +1044,7 @@ function onWeightChange(ei,si){
   // Barbell: update plate calculator
   if(ex?.eq==='barbell'){
     const pr=document.getElementById('pr-'+ei);
-    if(pr&&wVal)renderPlates(wVal,pr);
+    if(pr&&wVal)renderPlates(wVal,pr,barWeights[ei]);
   }
   // Live e1RM%
   const w=parseFloat(wVal);
@@ -1081,7 +1070,7 @@ function onSetDone(ei,si,exName){
   btn.classList.toggle('done');
   if(btn.classList.contains('done'))startTimer(defaultRestSecs,exName);
 }
-function resetWO(){activeType=null;stopSessionClock();buildPicker();skipTimer()}
+function resetWO(){activeType=null;barWeights={};currentSwaps={};stopSessionClock();buildPicker();skipTimer()}
 
 function collectData(){
   const p=PROGRAM[activeType];if(!p)return[];
