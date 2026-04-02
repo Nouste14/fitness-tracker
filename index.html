@@ -64,10 +64,12 @@
     .sets-table{width:100%;border-collapse:collapse}
     .sets-table th{color:var(--text3);text-align:center;padding:3px 2px;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
     .sets-table td{text-align:center;padding:4px 2px}
-    .sets-table input[type="number"]{background:var(--card3);border:1px solid var(--border);border-radius:8px;color:var(--text);text-align:center;width:52px;padding:7px 2px;font-size:13px;-moz-appearance:textfield}
-    .sets-table input.rpe-input{width:38px;font-size:12px}
+    .sets-table input[type="number"]{background:var(--card3);border:1px solid var(--border);border-radius:6px;color:var(--text);text-align:center;width:34px;padding:6px 1px;font-size:13px;font-weight:600;-moz-appearance:textfield}
     .sets-table input::-webkit-inner-spin-button,.sets-table input::-webkit-outer-spin-button{-webkit-appearance:none}
     .sets-table input:focus{outline:none;border-color:var(--accent)}
+    .stpr{display:flex;align-items:center;gap:2px}
+    .stpb{width:26px;height:34px;border:1px solid var(--border);background:var(--card3);color:var(--text);border-radius:6px;cursor:pointer;font-size:16px;font-weight:700;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+    .stpb:active{background:var(--accent);color:#000;border-color:var(--accent)}
     .ck{background:none;border:2px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:15px;transition:all .15s;display:flex;align-items:center;justify-content:center;margin:0 auto}
     .ck.done{background:var(--accent);border-color:var(--accent);color:#000}
     .add-set-btn{background:none;border:1px dashed var(--border);color:var(--text2);border-radius:8px;padding:6px;font-size:12px;cursor:pointer;margin-top:8px;width:100%;transition:all .15s}
@@ -223,6 +225,7 @@
   <!-- ══════ HOME ══════ -->
   <div class="page act" id="page-home">
     <div class="sg" id="stat-grid"></div>
+    <div id="draft-banner"></div>
     <div id="deload-banner"></div>
     <div class="card"><div class="card-title">Next Session</div><div id="today-info"></div>
       <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="switchPage('workout')">+ Log Workout</button>
@@ -388,7 +391,11 @@
     </div>
     <div class="card">
       <div class="card-title">🔢 Plate Calculator</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Standard bar = 20kg. Enter your target total weight.</p>
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button class="bar-sel act" onclick="setSABar(20,this)">20kg Olympic</button>
+        <button class="bar-sel" onclick="setSABar(10,this)">10kg EZ</button>
+        <button class="bar-sel" onclick="setSABar(15,this)">15kg bar</button>
+      </div>
       <div class="ig"><label>Target Weight (kg)</label>
         <input type="number" id="standalone-plate-input" step="2.5" placeholder="e.g. 80" oninput="renderStandalonePlates()"/>
       </div>
@@ -445,7 +452,7 @@
 //  DATA
 // ═══════════════════════════════════════════════
 const START='2026-03-22';
-const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault'};
+const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft'};
 const ld=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 let sessions=ld(K.s)||[], bodyStats=ld(K.b)||[], creatineDays=ld(K.c)||[];
@@ -610,20 +617,21 @@ function renderPlates(totalKg, containerEl, barKg){
   html+=`</div>`;
   containerEl.innerHTML=html;
 }
+let saBarKg=20;
+function setSABar(kg,btn){
+  saBarKg=kg;
+  document.querySelectorAll('.bar-sel').forEach(b=>{if(b.onclick&&b.onclick.toString().includes('setSABar'))b.classList.remove('act')});
+  btn.classList.add('act');
+  renderStandalonePlates();
+}
 function renderStandalonePlates(){
   const val=document.getElementById('standalone-plate-input').value;
   const el=document.getElementById('standalone-plate-result');
-  el.innerHTML='';
-  if(!val)return;
-  const wrap=document.createElement('div');wrap.className='plate-calc';
-  const res=document.createElement('div');res.className='plate-result';
-  wrap.appendChild(res);
-  el.appendChild(wrap);
-  renderPlates(val,res.parentNode.querySelector('.plate-result')?res:wrap);
-  // reuse inline
   const v=parseFloat(val);
-  if(!v||v<BAR_WEIGHT){el.innerHTML=`<div style="color:var(--red);font-size:12px;padding:8px 0">Bar alone is ${BAR_WEIGHT}kg</div>`;return}
-  const r=calcPlates(v);if(!r){el.innerHTML='';return}
+  if(!v||v<=0){el.innerHTML='';return}
+  if(v<saBarKg){el.innerHTML=`<div style="color:var(--red);font-size:12px;padding:8px 0">Bar alone is ${saBarKg}kg</div>`;return}
+  const r=calcPlates(v,saBarKg);if(!r){el.innerHTML='';return}
+  if(r.plates.length===0&&r.leftover===0){el.innerHTML=`<div style="color:var(--text2);font-size:12px;padding:8px 0">Just the bar (${saBarKg}kg)</div>`;return}
   let html=`<div class="plate-calc"><div class="plate-calc-title">Each side (${r.perSide}kg)</div><div class="plate-result">`;
   r.plates.forEach(({plate,count})=>{for(let i=0;i<count;i++)html+=`<span class="plate ${PLATE_CLASS[plate]||'p1h'}">${plate}</span>`});
   if(r.leftover>0)html+=`<span style="color:var(--red);font-size:11px">+${r.leftover}kg unmakeable</span>`;
@@ -710,6 +718,18 @@ function setRPE(ei,si,val,btn){
   const prev=+inp.value;
   if(prev===val){inp.value='';document.querySelectorAll('#rpe-wrap-'+ei+'-'+si+' .rpe-btn').forEach(b=>b.classList.remove('rpe-sel'));}
   else{inp.value=val;document.querySelectorAll('#rpe-wrap-'+ei+'-'+si+' .rpe-btn').forEach(b=>b.classList.remove('rpe-sel'));btn.classList.add('rpe-sel');}
+  if(navigator.vibrate)navigator.vibrate(8);
+  saveDraft();
+}
+function adj(type,ei,si,dir){
+  const inp=document.getElementById((type==='r'?'r':'w')+'-'+ei+'-'+si);
+  if(!inp)return;
+  const cur=parseFloat(inp.value)||0;
+  const step=type==='w'?2.5:1;
+  const nv=Math.max(0,+(cur+dir*step).toFixed(2));
+  inp.value=nv||'';
+  onWeightChange(ei,si);
+  if(navigator.vibrate)navigator.vibrate(8);
 }
 
 // ═══════════════════════════════════════════════
@@ -838,7 +858,7 @@ function renderHome(){
   document.getElementById('coach-note').textContent=COACH[days%COACH.length];
   const taken=creatineDays.includes(today());
   document.getElementById('creatine-info').innerHTML=`Today: <strong style="color:${taken?'var(--accent)':'var(--text2)'}">${taken?'✅ Taken':'⬜ Not logged'}</strong> · Total: <strong style="color:var(--accent)">${creatineDays.length} days</strong>`;
-  renderPRs();renderHomeInsights();renderDeloadBanner();renderHeatmap('heatmap-home');
+  renderPRs();renderHomeInsights();renderDeloadBanner();renderHeatmap('heatmap-home');checkDraft();
 }
 function renderDeloadBanner(){
   const el=document.getElementById('deload-banner');
@@ -1024,11 +1044,19 @@ function appendSetRow(tbody,ei,si,pre,exName){
   const tr=document.createElement('tr');
   const selRpe=+pre.rpe||0;
   const rpeBtns=[6,7,8,9,10].map(v=>`<button class="rpe-btn ${v<=6?'rpe-low':v<=8?'rpe-mid':'rpe-high'}${selRpe===v?' rpe-sel':''}" onclick="setRPE(${ei},${si},${v},this)">${v}</button>`).join('');
-  tr.innerHTML=`<td style="font-weight:700;color:var(--text2);font-size:12px">${si+1}</td>
-    <td><input type="number" id="r-${ei}-${si}" min="0" max="200" value="${pre.reps||''}" placeholder="—" oninput="onWeightChange(${ei},${si})"/></td>
-    <td><input type="number" id="w-${ei}-${si}" min="0" max="999" step="2.5" value="${pre.weight||''}" placeholder="—" oninput="onWeightChange(${ei},${si})"/></td>
+  tr.innerHTML=`<td style="font-weight:700;color:var(--text2);font-size:12px;padding-right:2px">${si+1}</td>
+    <td><div class="stpr">
+      <button class="stpb" onclick="adj('r',${ei},${si},-1)">−</button>
+      <input type="number" id="r-${ei}-${si}" min="0" max="200" value="${pre.reps||''}" placeholder="—" oninput="onWeightChange(${ei},${si})"/>
+      <button class="stpb" onclick="adj('r',${ei},${si},1)">+</button>
+    </div></td>
+    <td><div class="stpr">
+      <button class="stpb" onclick="adj('w',${ei},${si},-1)">−</button>
+      <input type="number" id="w-${ei}-${si}" min="0" max="999" step="2.5" value="${pre.weight||''}" placeholder="—" oninput="onWeightChange(${ei},${si})"/>
+      <button class="stpb" onclick="adj('w',${ei},${si},1)">+</button>
+    </div></td>
     <td><div class="rpe-grid" id="rpe-wrap-${ei}-${si}">${rpeBtns}<input type="hidden" id="rpe-${ei}-${si}" value="${pre.rpe||''}"/></div></td>
-    <td id="e1-${ei}-${si}" style="font-size:10px;color:var(--text2);min-width:30px;text-align:center">—</td>
+    <td id="e1-${ei}-${si}" style="font-size:10px;color:var(--text2);min-width:28px;text-align:center">—</td>
     <td><button class="ck" id="ck-${ei}-${si}" onclick="onSetDone(${ei},${si},'${exName||''}')">✓</button></td>`;
   tbody.appendChild(tr);
 }
@@ -1064,11 +1092,16 @@ function onWeightChange(ei,si){
       } else eEl.textContent='—';
     } else eEl.textContent='—';
   }
+  saveDraft();
 }
 function onSetDone(ei,si,exName){
   const btn=document.getElementById('ck-'+ei+'-'+si);
   btn.classList.toggle('done');
-  if(btn.classList.contains('done'))startTimer(defaultRestSecs,exName);
+  if(btn.classList.contains('done')){
+    startTimer(defaultRestSecs,exName);
+    if(navigator.vibrate)navigator.vibrate([15,30,15]);
+  }
+  saveDraft();
 }
 function resetWO(){activeType=null;barWeights={};currentSwaps={};stopSessionClock();buildPicker();skipTimer()}
 
@@ -1084,13 +1117,60 @@ function collectData(){
     }).filter(Boolean)};
   });
 }
+function saveDraft(){
+  if(!activeType||activeType==='rest')return;
+  sv(K.draft,{type:activeType,date:getLogDate(),exercises:collectData(),ts:Date.now()});
+}
+function clearDraft(){localStorage.removeItem(K.draft);}
+function restoreDraft(){
+  const d=ld(K.draft);if(!d)return;
+  document.getElementById('draft-banner').innerHTML='';
+  switchPage('workout');
+  selectType(d.type);
+  setTimeout(()=>{
+    (d.exercises||[]).forEach((ex,i)=>{
+      (ex.sets||[]).forEach((st,si)=>{
+        const rEl=document.getElementById('r-'+i+'-'+si);
+        const wEl=document.getElementById('w-'+i+'-'+si);
+        const ckEl=document.getElementById('ck-'+i+'-'+si);
+        const rpeInp=document.getElementById('rpe-'+i+'-'+si);
+        if(rEl){rEl.value=st.reps;}
+        if(wEl){wEl.value=st.weight;}
+        if(ckEl&&st.done)ckEl.classList.add('done');
+        if(rpeInp&&st.rpe){
+          rpeInp.value=st.rpe;
+          const btn=document.querySelector(`#rpe-wrap-${i}-${si} .rpe-btn:nth-child(${+st.rpe-5})`);
+          if(btn)btn.classList.add('rpe-sel');
+        }
+        onWeightChange(i,si);
+      });
+    });
+    toast('Session restored ✓');
+  },150);
+}
+function discardDraft(){clearDraft();document.getElementById('draft-banner').innerHTML='';}
+function checkDraft(){
+  const d=ld(K.draft);
+  const el=document.getElementById('draft-banner');
+  if(!el)return;
+  if(d&&d.type&&PROGRAM[d.type]){
+    const age=Math.round((Date.now()-d.ts)/60000);
+    el.innerHTML=`<div class="deload-banner" style="background:rgba(108,123,255,.07);border-color:rgba(108,123,255,.3);margin-bottom:14px">
+      <div class="deload-banner-title" style="color:var(--legs)">💾 Unsaved Session Found</div>
+      <p>${PROGRAM[d.type].label} from ${age<60?age+'min ago':fmt(d.date)} — want to pick up where you left off?</p>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary btn-sm" onclick="restoreDraft()">Restore Session</button>
+        <button class="btn btn-secondary btn-sm" onclick="discardDraft()">Discard</button>
+      </div></div>`;
+  } else el.innerHTML='';
+}
 function getLogDate(){return document.getElementById('wo-log-date')?.value||today()}
 function saveSession(){
   const exs=collectData();
   if(!exs.some(e=>e.sets.some(s=>s.done))){toast('Mark at least one set ✓');return}
   const d=getLogDate(),dur=stopSessionClock();
   sessions.push({id:Date.now(),date:d,type:activeType,exercises:exs,notes:document.getElementById('session-notes').value||'',duration:dur,savedAt:new Date().toISOString()});
-  ssv();skipTimer();toast(d===today()?`Session saved! ${dur?dur+'min 💪':'💪'}`:`Saved for ${fmt(d)} 💪`);document.getElementById('session-notes').value='';resetWO();switchPage('home');
+  ssv();clearDraft();skipTimer();toast(d===today()?`Session saved! ${dur?dur+'min 💪':'💪'}`:`Saved for ${fmt(d)} 💪`);document.getElementById('session-notes').value='';resetWO();switchPage('home');
 }
 function saveRest(){
   stopSessionClock();
@@ -1126,7 +1206,7 @@ function renderHistory(){
     return`<div class="hi" onclick="document.getElementById('hd-${s.id}').classList.toggle('open')">
       <div class="hi-header"><div>
         <div style="font-size:14px;font-weight:700;margin-bottom:4px">${fmtLong(s.date)}</div>
-        <div style="display:flex;align-items:center;gap:8px">${badge}${vol?`<span style="font-size:11px;color:var(--text2)">Vol: ${vol.toLocaleString()} kg</span>`:''}${s.duration?`<span style="font-size:11px;color:var(--text2)">⏱ ${s.duration}min</span>`:''}</div>
+        ${(()=>{const hs=(s.exercises||[]).reduce((a,ex)=>a+(ex.sets||[]).filter(st=>st.done&&+st.rpe>=8).length,0);return`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${badge}${vol?`<span style="font-size:11px;color:var(--text2)">Vol: ${vol.toLocaleString()} kg</span>`:''}${hs?`<span style="font-size:11px;color:var(--red);font-weight:700">${hs} hard</span>`:''}${s.duration?`<span style="font-size:11px;color:var(--text2)">⏱ ${s.duration}min</span>`:''}</div>`})()}
       </div><span style="color:var(--text3);font-size:18px">›</span></div>
       <div class="hi-detail" id="hd-${s.id}">${rows}${s.notes?`<div style="margin-top:8px;font-style:italic">"${s.notes}"</div>`:''}
         <button class="btn btn-danger btn-sm" style="margin-top:10px" onclick="event.stopPropagation();delSess(${s.id})">Delete</button>
@@ -1242,6 +1322,16 @@ function renderInsightsTab(){
   const weeks=Math.max(1,Math.ceil(daysSince(START)/7));
   const freq=(sessions.filter(s=>s.type!=='rest').length/weeks).toFixed(1);
   cards.push({title:'📅 Training Frequency',html:`Averaging <strong style="color:var(--accent)">${freq} sessions/week</strong> over ${weeks} weeks. Target: <strong>5–6/week</strong> for full PPL A/B cycle.`});
+  // Hard Sets (RPE 8+)
+  const hardByMG={};
+  sessions.forEach(s=>(s.exercises||[]).forEach(ex=>{
+    const mg=MM[ex.name];if(!mg)return;
+    const hs=(ex.sets||[]).filter(st=>st.done&&+st.rpe>=8).length;
+    if(hs>0)hardByMG[mg]=(hardByMG[mg]||0)+hs;
+  }));
+  const hEntries=Object.entries(hardByMG).sort((a,b)=>b[1]-a[1]);
+  const totalHard=hEntries.reduce((a,[,n])=>a+n,0);
+  if(hEntries.length)cards.push({title:'🔥 Hard Sets (RPE 8+)',html:`<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Total: <strong style="color:var(--red)">${totalHard} hard sets</strong> logged across all sessions. Hard sets (RPE ≥8) drive the most muscle growth.</div>${hEntries.slice(0,5).map(([mg,n])=>`<div class="pr-row"><span>${mg}</span><strong style="color:var(--red)">${n} sets</strong></div>`).join('')}`});
   // Est 1RMs
   const comps=['Barbell Bench Press','Barbell Back Squat','Romanian Deadlift','Seated DB Shoulder Press','Barbell Row'];
   const rmRows=[];comps.forEach(name=>{let b=0;sessions.forEach(s=>{const ex=(s.exercises||[]).find(e=>e.name===name);if(ex)(ex.sets||[]).filter(st=>st.done&&+st.weight&&+st.reps).forEach(st=>{const e=est1RM(+st.weight,+st.reps);if(e>b)b=e})});if(b>0)rmRows.push(`<div class="pr-row"><span>${name}</span><strong style="color:var(--gold)">${b}kg</strong></div>`)});
