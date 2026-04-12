@@ -1,4 +1,4 @@
-const CACHE = 'nour-fitness-v3';
+const CACHE = 'nour-fitness-v5';
 const PRECACHE = [
   './',
   './index.html',
