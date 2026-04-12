@@ -196,10 +196,16 @@
     /* Heatmap */
     .hm-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:4px 0}
     .hm-tile{border-radius:10px;padding:10px 8px;border:1px solid var(--border);transition:all .2s;cursor:default}
-    .hm-tile-name{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px}
-    .hm-bar-track{background:rgba(255,255,255,.06);border-radius:4px;height:4px;overflow:hidden}
-    .hm-bar-fill{height:4px;border-radius:4px;transition:width .4s ease}
-    .hm-vol{font-size:9px;color:var(--text2);margin-top:4px}
+    .hm-tile-name{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px}
+    .hm-set-row{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
+    .hm-set-count{font-size:18px;font-weight:800;line-height:1}
+    .hm-set-target{font-size:9px;color:var(--text3);font-weight:600}
+    .hm-bar-outer{position:relative;background:rgba(255,255,255,.06);border-radius:4px;height:5px;overflow:visible;margin-bottom:4px}
+    .hm-bar-fill{height:5px;border-radius:4px;transition:width .4s ease}
+    .hm-bar-min{position:absolute;top:-2px;width:2px;height:9px;background:rgba(255,255,255,.25);border-radius:1px}
+    .hm-vol{font-size:9px;color:var(--text3);margin-top:1px}
+    /* Plateau badge */
+    .ex-plateau{font-size:11px;color:var(--gold);margin-bottom:8px;padding:7px 10px;background:rgba(255,193,7,.06);border-radius:8px;border:1px solid rgba(255,193,7,.2)}
   </style>
 </head>
 <body>
@@ -522,6 +528,14 @@ const MM={
   'Leg Press Calf Raise':'Calves','Single-Leg Calf Raise':'Calves','Smith Machine Calf Raise':'Calves','Donkey Calf Raise':'Calves'
 };
 
+// Weekly working set targets per muscle group (hypertrophy research-backed ranges)
+// Based on Schoenfeld/Krieger recommendations for beginner-intermediate trainees
+const WEEKLY_SET_TARGETS={
+  'Chest':{min:10,max:14},'Back':{min:12,max:16},'Shoulders':{min:10,max:14},
+  'Biceps':{min:8,max:12},'Triceps':{min:8,max:12},
+  'Quads':{min:12,max:16},'Hamstrings':{min:10,max:14},'Glutes':{min:10,max:14},'Calves':{min:8,max:12}
+};
+
 // ═══════════════════════════════════════════════
 //  PROGRAM — PPL A/B
 // ═══════════════════════════════════════════════
@@ -810,6 +824,55 @@ function getOverloadSuggestion(exName, isLower){
 }
 
 // ═══════════════════════════════════════════════
+//  PLATEAU DETECTION
+// ═══════════════════════════════════════════════
+// Returns plateau info if the last 3+ sessions of this type show no e1RM improvement,
+// AND RPE isn't declining (which would indicate efficiency gain, not a true plateau).
+function detectPlateau(exName){
+  if(!activeType)return null;
+  const ofSameType=sessions.filter(s=>s.type===activeType);
+  if(ofSameType.length<3)return null; // need at least 3 sessions of this type
+  // Get last 4 sessions of this type (take up to 4, need 3 with the exercise)
+  const recent=[...ofSameType].reverse().slice(0,4);
+  const history=recent.map(s=>{
+    const ex=(s.exercises||[]).find(e=>e.name===exName);
+    if(!ex)return null;
+    const working=(ex.sets||[]).filter(st=>st.done&&!st.warmup&&+st.reps);
+    if(!working.length)return null;
+    // Best e1RM from working sets
+    let bestE1=0;
+    working.forEach(st=>{
+      const eq2=(()=>{for(const t of Object.keys(PROGRAM)){const e=(PROGRAM[t].exercises||[]).find(e=>e.name===exName);if(e)return e.eq;}return''})();
+      const ew=effectiveWeight(st.weight,eq2);
+      if(!ew)return;
+      const e=est1RM(ew,+st.reps);
+      if(e>bestE1)bestE1=e;
+    });
+    if(!bestE1)return null;
+    const rpeVals=working.filter(st=>+st.rpe);
+    const avgRpe=rpeVals.length?rpeVals.reduce((a,st)=>a+(+st.rpe),0)/rpeVals.length:null;
+    return{e1rm:bestE1,rpe:avgRpe,date:s.date};
+  }).filter(Boolean);
+  if(history.length<3)return null;
+  const last3=history.slice(0,3); // most recent first
+  // Check if e1RM has been flat (variance < 3%)
+  const e1rms=last3.map(h=>h.e1rm);
+  const maxE=Math.max(...e1rms), minE=Math.min(...e1rms);
+  if(maxE===0)return null;
+  const variance=(maxE-minE)/maxE;
+  if(variance>0.03)return null; // >3% improvement somewhere → not a plateau
+  // RPE trend: if RPE is declining (≥0.7 drop from oldest to newest), it's efficiency gain
+  const rpes=last3.map(h=>h.rpe).filter(r=>r!==null);
+  if(rpes.length>=2){
+    const rpeNewest=rpes[0], rpeOldest=rpes[rpes.length-1];
+    if(rpeOldest-rpeNewest>=0.7)return null; // meaningful RPE drop → getting stronger, not plateauing
+  }
+  // Plateau confirmed
+  const suggestions=['Try a different rep range (e.g. drop to 5s if you\'ve been doing 8s)','Add a deload week — reduce weight by 15% for one session, then come back fresh','Add a back-off set at 60% load for high reps after your working sets','Check sleep and protein — those two fix most plateau without changing the program'];
+  return{sessions:last3.length,e1rm:Math.round(maxE),tip:suggestions[Math.floor(Math.random()*suggestions.length)]};
+}
+
+// ═══════════════════════════════════════════════
 //  RPE HELPER
 // ═══════════════════════════════════════════════
 function rpeClass(v){if(!v)return'';if(v<=6)return'rpe-low';if(v<=8)return'rpe-mid';return'rpe-high';}
@@ -1008,34 +1071,44 @@ function renderHeatmap(containerId){
   const el=document.getElementById(containerId);if(!el)return;
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);
   const cutStr=cutoff.toISOString().slice(0,10);
-  const mVol={};
+  // Count working sets AND volume per muscle group in the last 7 days
+  const mSets={}, mVol={};
   sessions.filter(s=>s.date>=cutStr).forEach(s=>(s.exercises||[]).forEach(ex=>{
     const mg=MM[ex.name];if(!mg)return;
-    const v=(ex.sets||[]).filter(st=>st.done).reduce((a,st)=>a+(+st.weight||0)*(+st.reps||0),0);
-    mVol[mg]=(mVol[mg]||0)+v;
+    const working=(ex.sets||[]).filter(st=>st.done&&!st.warmup);
+    mSets[mg]=(mSets[mg]||0)+working.length;
+    mVol[mg]=(mVol[mg]||0)+working.reduce((a,st)=>a+(+st.weight||0)*(+st.reps||0),0);
   }));
   const ORDER=['Chest','Shoulders','Back','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves'];
-  const maxV=Math.max(...ORDER.map(m=>mVol[m]||0),1);
-  function tileStyle(v){
-    if(!v)return{bg:'var(--card2)',border:'var(--border)',bar:'rgba(255,255,255,.12)',nameCol:'var(--text2)'};
-    const p=v/maxV;
-    if(p<0.3)return{bg:'rgba(108,123,255,.08)',border:'rgba(108,123,255,.3)',bar:'var(--legs)',nameCol:'var(--legs)'};
-    if(p<0.65)return{bg:'rgba(255,193,7,.08)',border:'rgba(255,193,7,.35)',bar:'var(--gold)',nameCol:'var(--gold)'};
-    return{bg:'rgba(255,109,59,.1)',border:'rgba(255,109,59,.4)',bar:'var(--push)',nameCol:'var(--push)'};
-  }
   const tiles=ORDER.map(mg=>{
-    const v=mVol[mg]||0;
-    const s=tileStyle(v);
-    const pct=Math.round(v/maxV*100);
-    const label=v>999?(v/1000).toFixed(1)+'k':v>0?v+'':'—';
-    return`<div class="hm-tile" style="background:${s.bg};border-color:${s.border}">
-      <div class="hm-tile-name" style="color:${s.nameCol}">${mg}</div>
-      <div class="hm-bar-track"><div class="hm-bar-fill" style="width:${v?Math.max(pct,8):0}%;background:${s.bar}"></div></div>
-      <div class="hm-vol">${v?label+' kg':'Rest'}</div>
+    const sets=mSets[mg]||0;
+    const vol=mVol[mg]||0;
+    const tgt=WEEKLY_SET_TARGETS[mg]||{min:10,max:14};
+    const volLabel=vol>999?(vol/1000).toFixed(1)+'k':vol>0?vol:'0';
+    // Status: under / on-track / maxed
+    let bg,border,countCol,barCol,icon;
+    if(!sets){bg='var(--card2)';border='var(--border)';countCol='var(--text3)';barCol='rgba(255,255,255,.1)';icon=''}
+    else if(sets<tgt.min){bg='rgba(255,193,7,.05)';border='rgba(255,193,7,.25)';countCol='var(--gold)';barCol='var(--gold)';icon='⚠'}
+    else if(sets<=tgt.max){bg='rgba(0,230,118,.05)';border='rgba(0,230,118,.2)';countCol='var(--accent)';barCol='var(--accent)';icon='✓'}
+    else{bg='rgba(255,109,59,.07)';border='rgba(255,109,59,.3)';countCol='var(--push)';barCol='var(--push)';icon='🔥'}
+    // Bar: fill = sets / max target (capped at 100%). Min-marker at sets==min position
+    const fillPct=sets?Math.min(Math.round(sets/tgt.max*100),100):0;
+    const minPct=Math.round(tgt.min/tgt.max*100);
+    return`<div class="hm-tile" style="background:${bg};border-color:${border}">
+      <div class="hm-tile-name" style="color:${countCol}">${mg}</div>
+      <div class="hm-set-row">
+        <span class="hm-set-count" style="color:${countCol}">${sets||'0'}</span>
+        <span class="hm-set-target">/ ${tgt.min}–${tgt.max} sets${icon?' '+icon:''}</span>
+      </div>
+      <div class="hm-bar-outer">
+        <div class="hm-bar-fill" style="width:${fillPct}%;background:${barCol}"></div>
+        <div class="hm-bar-min" style="left:${minPct}%"></div>
+      </div>
+      <div class="hm-vol">${volLabel} kg volume</div>
     </div>`;
   }).join('');
   el.innerHTML=`<div class="hm-grid">${tiles}</div>
-  <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:4px">Last 7 days · coloured by relative volume</div>`;
+  <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:6px">Last 7 days · ⚠ under target · ✓ on track · 🔥 maxed · white line = minimum</div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -1210,12 +1283,15 @@ function buildExercises(p){
     // Overload suggestion uses displayed (possibly swapped) name
     const sug=getOverloadSuggestion(displayName,isLower);
     const sugHTML=sug?`<div class="ex-suggest">${sug.type==='increase'?'🎯':'💪'} ${sug.msg}</div>`:'';
-    // Last session note (only if no suggestion)
+    // Plateau detection
+    const plateau=detectPlateau(displayName);
+    const plateauHTML=plateau?`<div class="ex-plateau">⚠️ Plateau detected · ${plateau.sessions} sessions at ~${plateau.e1rm}kg e1RM with no improvement. <strong>Suggestion:</strong> ${plateau.tip}</div>`:'';
+    // Last session note (only if no suggestion and no plateau)
     let lastHTML='';
-    if(!sug&&lastSame){
+    if(!sug&&!plateau&&lastSame){
       const prev=(lastSame.exercises||[]).find(e=>e.name===displayName);
       if(prev){
-        const doneSets=(prev.sets||[]).filter(s=>s.done&&+s.weight);
+        const doneSets=(prev.sets||[]).filter(s=>s.done&&!s.warmup&&+s.weight);
         if(doneSets.length){const b=doneSets.reduce((b,s)=>+s.weight>+b.weight?s:b,{weight:0,reps:0});const e1=est1RM(+b.weight,+b.reps);lastHTML=`<div class="ex-last">📅 ${fmt(lastSame.date)} · Best: <strong>${b.weight}kg × ${b.reps}</strong>${e1?` (Est. 1RM: ${e1}kg)`:''}</div>`}
       }
     }
@@ -1226,7 +1302,7 @@ function buildExercises(p){
         <button class="swap-btn" onclick="openSwap(${i})">⇄ Swap</button>
         <span style="font-size:11px;color:var(--text2)">${defSets}×${ex.reps}</span>
       </div></div>
-      <div class="ex-tip">${ex.note}</div>${sugHTML}${lastHTML}
+      <div class="ex-tip">${ex.note}</div>${plateauHTML}${sugHTML}${lastHTML}
       <table class="sets-table"><thead><tr><th>#</th><th>Reps</th><th>Kg</th><th>RPE</th><th style="font-size:9px">%1RM</th><th>✓</th></tr></thead><tbody id="sb-${i}"></tbody></table>
       <button class="add-set-btn" onclick="addSet(${i})">+ Add Set</button>`;
     // Equipment-aware plate info
