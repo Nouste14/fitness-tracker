@@ -428,6 +428,39 @@
       </div>
       <button class="btn btn-primary btn-sm btn-full" onclick="importData()">📥 Import & Merge Data</button>
     </div>
+    <!-- CUSTOM EXERCISE MANAGER -->
+    <div class="card">
+      <div class="card-title">➕ Add Custom Exercise</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5">Missing an exercise from your gym? Add it here — it'll immediately appear in the swap modal under the right muscle group, and count toward your weekly volume targets.</p>
+      <div class="ig" style="margin-bottom:8px">
+        <label>Exercise Name</label>
+        <input type="text" id="ce-name" placeholder="e.g. Smith Machine Incline Press" style="text-transform:none" onkeydown="if(event.key==='Enter')addCustomExercise()"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div class="ig">
+          <label>Muscle Group</label>
+          <select id="ce-mg" style="background:var(--card3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;width:100%">
+            <option value="">— Pick group —</option>
+            <option>Chest</option><option>Back</option><option>Shoulders</option>
+            <option>Biceps</option><option>Triceps</option><option>Quads</option>
+            <option>Hamstrings</option><option>Glutes</option><option>Calves</option>
+          </select>
+        </div>
+        <div class="ig">
+          <label>Equipment</label>
+          <select id="ce-eq" style="background:var(--card3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;width:100%">
+            <option value="">— Pick type —</option>
+            <option>barbell</option><option>dumbbell</option><option>cable</option>
+            <option>machine</option><option>bodyweight</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm btn-full" onclick="addCustomExercise()">Add Exercise</button>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Your Custom Exercises</div>
+        <div id="custom-ex-list"></div>
+      </div>
+    </div>
     <div class="card"><div class="card-title" style="margin-bottom:10px">⚠️ Data</div>
       <button class="btn btn-danger btn-sm" onclick="clearAll()">🗑 Clear All Data</button>
     </div>
@@ -488,7 +521,7 @@
 //  DATA
 // ═══════════════════════════════════════════════
 const START='2026-03-22';
-const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft',p:'nf3_program'};
+const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft',p:'nf3_program',ce:'nf3_custom'};
 const ld=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 let sessions=ld(K.s)||[], bodyStats=ld(K.b)||[], creatineDays=ld(K.c)||[];
@@ -940,6 +973,60 @@ const ALTERNATIVES={
   'Glutes':['Hip Thrust','Bulgarian Split Squat','Walking Lunges','Cable Kickback','Sumo Squat','Glute Bridge','Smith Machine Hip Thrust','Cable Pull-Through','Donkey Kickback (Machine)'],
   'Calves':['Seated Calf Raise','Standing Calf Raise','Leg Press Calf Raise','Single-Leg Calf Raise','Smith Machine Calf Raise','Donkey Calf Raise']
 };
+// ═══════════════════════════════════════════════
+//  CUSTOM EXERCISE MANAGER
+// ═══════════════════════════════════════════════
+let customExercises=ld(K.ce)||[]; // [{name,mg,eq}]
+function applyCustomExercises(){
+  customExercises.forEach(({name,mg,eq})=>{
+    if(!name||!mg)return;
+    MM[name]=mg;
+    if(!ALTERNATIVES[mg])ALTERNATIVES[mg]=[];
+    if(!ALTERNATIVES[mg].includes(name))ALTERNATIVES[mg].push(name);
+  });
+}
+applyCustomExercises(); // merge into MM + ALTERNATIVES on every load
+function addCustomExercise(){
+  const name=document.getElementById('ce-name').value.trim();
+  const mg=document.getElementById('ce-mg').value;
+  const eq=document.getElementById('ce-eq').value;
+  if(!name){toast('Enter an exercise name');return}
+  if(!mg){toast('Pick a muscle group');return}
+  if(!eq){toast('Pick equipment type');return}
+  if(customExercises.find(e=>e.name.toLowerCase()===name.toLowerCase())||MM[name]){toast(name+' already exists');return}
+  customExercises.push({name,mg,eq});
+  sv(K.ce,customExercises);
+  applyCustomExercises();
+  document.getElementById('ce-name').value='';
+  renderCustomExercises();
+  toast(name+' added to '+mg+' ✓');
+}
+function deleteCustomExercise(name){
+  if(!confirm('Remove "'+name+'" from custom exercises?'))return;
+  const mg=MM[name];
+  customExercises=customExercises.filter(e=>e.name!==name);
+  sv(K.ce,customExercises);
+  delete MM[name];
+  if(mg&&ALTERNATIVES[mg])ALTERNATIVES[mg]=ALTERNATIVES[mg].filter(n=>n!==name);
+  renderCustomExercises();
+  toast('Removed ✓');
+}
+function renderCustomExercises(){
+  const el=document.getElementById('custom-ex-list');if(!el)return;
+  if(!customExercises.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:6px 0">No custom exercises yet. Add one above and it\'ll appear in swap options instantly.</div>';
+    return;
+  }
+  el.innerHTML=customExercises.map(e=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--card2);border-radius:9px;border:1px solid var(--border);margin-bottom:6px">
+      <div>
+        <span style="font-size:13px;font-weight:700;color:var(--text)">${e.name}</span>
+        <span style="font-size:10px;color:var(--text2);margin-left:8px">${e.mg} · ${e.eq}</span>
+      </div>
+      <button onclick="deleteCustomExercise('${e.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}') " style="background:none;border:none;color:var(--red);cursor:pointer;font-size:20px;padding:0 4px;line-height:1">×</button>
+    </div>`).join('');
+}
+
 let swapEI=null;
 let currentSwaps={}; // ei → swapped exercise name (persists across nav during same session)
 function openSwap(ei){
@@ -1744,6 +1831,7 @@ function saveBodyStat(){
 // PROGRAM
 function renderProgram(){
   document.getElementById('program-content').innerHTML=CYCLE.filter(t=>t!=='rest').map(t=>{const p=PROGRAM[t];return`<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)"><span class="badge ${p.bc}">${p.label}</span><span style="font-size:12px;color:var(--text2)">${p.sub}</span></div>${p.exercises.map(e=>`<div class="prog-ex"><div><div class="prog-ex-name">${e.name}</div><div class="prog-ex-note">${e.note}</div></div><div class="prog-ex-sets">${e.sets}×${e.reps}</div></div>`).join('')}<div class="prog-tip">${p.tip}</div></div>`}).join('');
+  renderCustomExercises();
 }
 function exportData(){
   const payload=JSON.stringify({sessions,bodyStats,creatineDays,exportedAt:new Date().toISOString(),v:1});
