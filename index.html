@@ -534,10 +534,10 @@ const ssv=()=>sv(K.s,sessions), bsv=()=>sv(K.b,bodyStats), csv=()=>sv(K.c,creati
 const MM={
   // Chest
   'Barbell Bench Press':'Chest','Incline DB Press':'Chest','Cable Fly (Low-to-High)':'Chest','Incline Barbell Press':'Chest','Close Grip Bench Press':'Chest',
-  'Push-ups':'Chest','Cable Crossover':'Chest','Machine Chest Press':'Chest','Pec Deck':'Chest','Smith Machine Bench Press':'Chest','Dumbbell Pullover':'Chest',
+  'Push-ups':'Chest','Cable Crossover':'Chest','Machine Chest Press':'Chest','Pec Deck':'Chest','Smith Machine Bench Press':'Chest','Dumbbell Pullover':'Chest','Incline Bench Press (Smith Machine)':'Chest',
   // Shoulders
   'DB Shoulder Press':'Shoulders','Lateral Raises (DB)':'Shoulders','Cable Lateral Raises':'Shoulders','Arnold Press':'Shoulders','Seated DB Shoulder Press':'Shoulders','Face Pulls':'Shoulders','Rear Delt Fly (Cable)':'Shoulders',
-  'Upright Row':'Shoulders','Machine Shoulder Press':'Shoulders','Machine Lateral Raise':'Shoulders','Dumbbell Front Raise':'Shoulders','Rear Delt Machine':'Shoulders','Cable Face Pull':'Shoulders',
+  'Upright Row':'Shoulders','Machine Shoulder Press':'Shoulders','Machine Lateral Raise':'Shoulders','Dumbbell Front Raise':'Shoulders','Rear Delt Machine':'Shoulders','Cable Face Pull':'Shoulders','Lateral Raise (Cable) - One Hand':'Shoulders',
   // Triceps
   'Tricep Pushdown':'Triceps','Overhead Tricep Extension':'Triceps','Tricep Dips (Weighted)':'Triceps',
   'Skull Crushers':'Triceps','Machine Tricep Extension':'Triceps','Tricep Kickback':'Triceps','Cable Overhead Tricep Extension':'Triceps',
@@ -585,14 +585,14 @@ const DEFAULT_PROGRAM={
       {name:'Overhead Tricep Extension',sets:2,reps:'12–15',eq:'dumbbell',note:'Long head stretch. Feel the stretch at the bottom.'},
     ]},
   'push-b':{label:'💪 Push B',sub:'Shoulder Focus',color:'#ff6d3b',bc:'b-push-b',
-    tip:'Shoulder-dominant. Lateral raises done right will transform your V-taper faster than almost anything. Control over load.',
+    tip:'Shoulder-dominant. Dips and close grip while your triceps are still loaded — then finish with laterals when strength no longer matters. Control over load.',
     exercises:[
       {name:'Seated DB Shoulder Press',sets:4,reps:'8–10',eq:'dumbbell',note:'Main pressing movement. Explosive up, 3s negative. Full range.'},
       {name:'Arnold Press',sets:3,reps:'10–12',eq:'dumbbell',note:'Rotation hits all three delt heads. Chin to full overhead.'},
-      {name:'Cable Lateral Raises',sets:4,reps:'15–20',eq:'cable',note:'Cross-body cable. Constant tension. Superior to dumbbells for medial delt.'},
       {name:'Incline Barbell Press',sets:3,reps:'10–12',eq:'barbell',note:'30° incline upper chest. Touch chest, drive explosively.'},
+      {name:'Tricep Dips (Weighted)',sets:3,reps:'10–12',eq:'bodyweight',note:'Upright torso = triceps. Belt or DB between feet. Do these while you still have strength.'},
       {name:'Close Grip Bench Press',sets:3,reps:'10–12',eq:'barbell',note:'Shoulder-width hands. Tricep compound. Full lock-out.'},
-      {name:'Tricep Dips (Weighted)',sets:3,reps:'10–12',eq:'bodyweight',note:'Upright torso = triceps. Belt or DB between feet.'},
+      {name:'Cable Lateral Raises',sets:4,reps:'15–20',eq:'cable',note:'Cross-body cable. Constant tension. Superior to dumbbells for medial delt. Good finisher — no strength required.'},
     ]},
   'pull-a':{label:'🔥 Pull A',sub:'Lat Width',color:'#00e676',bc:'b-pull-a',
     tip:'"Elbows to pockets" on every rep. Depress shoulder blades before pulling. Back works, arms just hold.',
@@ -963,8 +963,8 @@ function getBestE1RM(exName){
 //  EXERCISE SWAP
 // ═══════════════════════════════════════════════
 const ALTERNATIVES={
-  'Chest':['Barbell Bench Press','Incline DB Press','Cable Fly (Low-to-High)','Incline Barbell Press','Close Grip Bench Press','Push-ups','Cable Crossover','Machine Chest Press','Pec Deck','Smith Machine Bench Press','Dumbbell Pullover'],
-  'Shoulders':['DB Shoulder Press','Seated DB Shoulder Press','Lateral Raises (DB)','Cable Lateral Raises','Arnold Press','Face Pulls','Rear Delt Fly (Cable)','Upright Row','Machine Shoulder Press','Machine Lateral Raise','Dumbbell Front Raise','Rear Delt Machine','Cable Face Pull'],
+  'Chest':['Barbell Bench Press','Incline DB Press','Cable Fly (Low-to-High)','Incline Barbell Press','Close Grip Bench Press','Push-ups','Cable Crossover','Machine Chest Press','Pec Deck','Smith Machine Bench Press','Dumbbell Pullover','Incline Bench Press (Smith Machine)'],
+  'Shoulders':['DB Shoulder Press','Seated DB Shoulder Press','Lateral Raises (DB)','Cable Lateral Raises','Arnold Press','Face Pulls','Rear Delt Fly (Cable)','Upright Row','Machine Shoulder Press','Machine Lateral Raise','Dumbbell Front Raise','Rear Delt Machine','Cable Face Pull','Lateral Raise (Cable) - One Hand'],
   'Triceps':['Tricep Pushdown','Overhead Tricep Extension','Tricep Dips (Weighted)','Close Grip Bench Press','Skull Crushers','Machine Tricep Extension','Tricep Kickback','Cable Overhead Tricep Extension'],
   'Back':['Lat Pulldown (Wide)','Lat Pulldown (Neutral Grip)','Barbell Row','Single Arm DB Row','Seated Cable Row (Close Grip)','Chest-Supported Row','Pull-ups','Chin-ups','T-Bar Row','Machine Row','Cable Pullover','Meadows Row','Pendlay Row'],
   'Biceps':['Barbell Curl','Hammer Curl','Incline DB Curl','Cable Curl (Rope)','Preacher Curl','Concentration Curl','Machine Curl','Spider Curl','EZ Bar Curl','Cable Curl (Bar)'],
@@ -1533,7 +1533,7 @@ function collectData(){
 }
 function saveDraft(){
   if(!activeType||activeType==='rest')return;
-  sv(K.draft,{type:activeType,date:getLogDate(),exercises:collectData(),ts:Date.now()});
+  sv(K.draft,{type:activeType,date:getLogDate(),exercises:collectData(),ts:Date.now(),startedAt:sessionStartTime});
 }
 function clearDraft(){localStorage.removeItem(K.draft);}
 function restoreDraft(){
@@ -1541,6 +1541,8 @@ function restoreDraft(){
   document.getElementById('draft-banner').innerHTML='';
   switchPage('workout');
   selectType(d.type);
+  // Restore original start time so the session clock shows real elapsed time
+  if(d.startedAt){sessionStartTime=d.startedAt;}
   setTimeout(()=>{
     (d.exercises||[]).forEach((ex,i)=>{
       (ex.sets||[]).forEach((st,si)=>{
