@@ -1273,13 +1273,24 @@ function confirmSwap(btn){
         histDiv.innerHTML=`${fmt(lastSame.date)} · Best: <strong>${best.weight}kg × ${best.reps}</strong>${e1?` (Est. 1RM: ${e1}kg)`:''}`;
         const tbl=exCard.querySelector('.sets-table');
         if(tbl)tbl.parentNode.insertBefore(histDiv,tbl);
-        const w0=document.getElementById('w-'+swapEI+'-0');
-        const r0=document.getElementById('r-'+swapEI+'-0');
-        if(w0&&!w0.value)w0.value=best.weight;
-        if(r0&&!r0.value)r0.value=best.reps;
+        // FIX 4b: fill ALL existing set rows from last session history, not just set 0.
+        // Previously only w-X-0 / r-X-0 were populated, leaving every other row blank.
+        const prevSets=(exData.sets||[]).filter(st=>!st.warmup&&(+st.weight||+st.reps));
+        const existingTbody=exCard.querySelector('tbody');
+        const rowCount=existingTbody?existingTbody.querySelectorAll('tr').length:1;
+        for(let si=0;si<rowCount;si++){
+          const st=prevSets[si];if(!st)break;
+          const wEl=document.getElementById('w-'+swapEI+'-'+si);
+          const rEl=document.getElementById('r-'+swapEI+'-'+si);
+          const ckEl=document.getElementById('ck-'+swapEI+'-'+si);
+          if(ckEl&&ckEl.classList.contains('done'))continue; // don't overwrite already-ticked sets
+          if(wEl&&!wEl.value)wEl.value=st.weight||'';
+          if(rEl&&!rEl.value)rEl.value=st.reps||'';
+          onWeightChange(swapEI,si);
+        }
         if(newEq==='barbell'){
           const prEl=document.getElementById('pr-'+swapEI);
-          if(prEl)renderPlates(+best.weight,prEl,barWeights[swapEI]||BAR_WEIGHT);
+          if(prEl&&best.weight)renderPlates(+best.weight,prEl,barWeights[swapEI]||BAR_WEIGHT);
         }
       }
     }
@@ -1499,8 +1510,15 @@ function buildExercises(p){
     const defSets=ex.sets||3;
     const displayName=currentSwaps[i]||ex.name;
     let prefills=[];
-    if(lastSame){const prev=(lastSame.exercises||[]).find(e=>e.name===displayName);if(prev)prefills=prev.sets.map(s=>({reps:s.reps||'',weight:s.weight||''}))}
-    while(prefills.length<defSets)prefills.push({reps:'',weight:''});
+    if(lastSame){
+      let prev=(lastSame.exercises||[]).find(e=>e.name===displayName);
+      // FIX 4a: if name not found (e.g. a non-permanent swap was done last session and the
+      // exercise was saved under a different name), fall back to the same slot index so
+      // all sets are still pre-filled correctly
+      if(!prev&&(lastSame.exercises||[])[i])prev=(lastSame.exercises||[])[i];
+      if(prev)prefills=prev.sets.map(s=>({reps:s.reps||'',weight:s.weight||'',rpe:s.rpe||'',warmup:s.warmup||false}));
+    }
+    while(prefills.length<defSets)prefills.push({reps:'',weight:'',rpe:'',warmup:false});
     const sug=getOverloadSuggestion(displayName,isLower);
     const sugHTML=sug?`<div class="ex-suggest">${sug.msg}</div>`:'';
     const plateau=detectPlateau(displayName);
