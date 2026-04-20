@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-title" content="NourFit"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -24,7 +24,7 @@
       --shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
       --shadow-md:0 4px 16px rgba(0,0,0,.1);
     }
-    html,body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:500;line-height:1.4;min-height:100dvh;overscroll-behavior:none}
+    html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:400;line-height:1.5;min-height:100dvh;overscroll-behavior:none}
 
     /* HEADER */
     .hdr{position:sticky;top:0;z-index:200;background:rgba(244,243,238,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
@@ -35,7 +35,7 @@
 
     /* NAV */
     .nav{position:fixed;bottom:0;width:100%;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;z-index:200;max-width:640px;left:50%;transform:translateX(-50%);padding-bottom:env(safe-area-inset-bottom)}
-    .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 2px 8px;cursor:pointer;border:none;background:none;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;gap:3px;transition:color .15s}
+    .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 2px 8px;cursor:pointer;border:none;background:none;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;gap:3px;transition:color .15s}
     .nb.act{color:var(--accent)}
     .nb svg{width:19px;height:19px}
 
@@ -45,7 +45,7 @@
 
     /* CARD */
     .card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
-    .card-title{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.6px;margin-bottom:12px}
+    .card-title{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.6px;margin-bottom:12px}
 
     /* STAT GRID */
     .sg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
@@ -54,7 +54,7 @@
     .sl{font-size:9px;color:var(--text3);margin-top:4px;letter-spacing:.6px;text-transform:uppercase;font-weight:700}
 
     /* BADGES */
-    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
     .b-push-a,.b-push-b{background:#fee2e2;color:var(--push)}
     .b-pull-a,.b-pull-b{background:#dbeafe;color:var(--pull)}
     .b-legs-a,.b-legs-b{background:#ede9fe;color:var(--legs)}
@@ -74,7 +74,7 @@
     /* WORKOUT TYPE BUTTONS */
     .wt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
     .wtb{padding:16px 12px;border-radius:10px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:center;font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--text2);transition:all .2s;user-select:none;letter-spacing:.5px;box-shadow:var(--shadow)}
-    .wtb .wt-sub{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:500;opacity:.7;margin-top:3px;letter-spacing:.3px}
+    .wtb .wt-sub{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;opacity:.7;margin-top:3px;letter-spacing:.3px}
     .wtb.suggested{border-color:var(--gold);background:var(--card2);color:var(--text)}
     .wtb.sel-push-a,.wtb.sel-push-b{background:var(--push);border-color:var(--push);color:#fff}
     .wtb.sel-pull-a,.wtb.sel-pull-b{background:var(--pull);border-color:var(--pull);color:#fff}
@@ -84,7 +84,7 @@
     /* EXERCISE LOG */
     .ex-item{background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);box-shadow:var(--shadow)}
     .ex-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
-    .ex-name{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;flex:1}
+    .ex-name{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;flex:1}
     .ex-tip{font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4}
     .ex-last{font-size:11px;color:var(--gold);margin-bottom:8px;padding:7px 10px;background:#fffbeb;border-radius:6px;border:1px solid #fde68a}
     .ex-suggest{font-size:11px;color:var(--green);margin-bottom:8px;padding:7px 10px;background:#f0fdf4;border-radius:6px;border:1px solid #bbf7d0;font-weight:600}
@@ -93,7 +93,7 @@
     .sets-table{width:100%;border-collapse:collapse}
     .sets-table th{color:var(--text3);text-align:center;padding:3px 2px;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
     .sets-table td{text-align:center;padding:4px 2px}
-    .sets-table input[type="number"]{background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--text);text-align:center;width:34px;padding:6px 1px;font-size:13px;font-weight:600;-moz-appearance:textfield;font-family:'Barlow Condensed',sans-serif}
+    .sets-table input[type="number"]{background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--text);text-align:center;width:34px;padding:6px 1px;font-size:13px;font-weight:600;-moz-appearance:textfield;font-family:'DM Sans',sans-serif}
     .sets-table input::-webkit-inner-spin-button,.sets-table input::-webkit-outer-spin-button{-webkit-appearance:none}
     .sets-table input:focus{outline:none;border-color:var(--accent)}
     .stpr{display:flex;align-items:center;gap:2px}
@@ -101,7 +101,7 @@
     .stpb:active{background:var(--accent);color:#fff;border-color:var(--accent)}
     .ck{background:none;border:2px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:15px;transition:all .15s;display:flex;align-items:center;justify-content:center;margin:0 auto}
     .ck.done{background:var(--accent);border-color:var(--accent);color:#fff}
-    .add-set-btn{background:none;border:1px dashed var(--border);color:var(--text2);border-radius:8px;padding:6px;font-size:12px;cursor:pointer;margin-top:8px;width:100%;transition:all .15s;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.3px}
+    .add-set-btn{background:none;border:1px dashed var(--border);color:var(--text2);border-radius:8px;padding:6px;font-size:12px;cursor:pointer;margin-top:8px;width:100%;transition:all .15s;font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:.3px}
     .add-set-btn:hover{border-color:var(--accent);color:var(--accent)}
 
     /* REST TIMER */
@@ -113,9 +113,9 @@
     .rt-time{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--accent);position:relative;z-index:1}
     .rt-info{flex:1}
     .rt-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;font-weight:700}
-    .rt-ex{font-size:13px;font-weight:700;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif}
+    .rt-ex{font-size:13px;font-weight:700;margin-bottom:6px;font-family:'DM Sans',sans-serif}
     .rt-btns{display:flex;gap:6px}
-    .rt-btn{padding:5px 10px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--card2);color:var(--text2);font-family:'Barlow Condensed',sans-serif}
+    .rt-btn{padding:5px 10px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--card2);color:var(--text2);font-family:'DM Sans',sans-serif}
     .rt-btn.skip{background:#fee2e2;color:var(--accent)}
     .rt-btn.add{background:#fffbeb;color:var(--gold)}
 
@@ -123,7 +123,7 @@
     .plate-calc{margin-top:10px;background:var(--card2);border-radius:8px;padding:12px;border:1px solid var(--border)}
     .plate-calc-title{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;font-weight:700}
     .plate-result{display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:30px}
-    .plate{padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif}
+    .plate{padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif}
     .p20{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5}
     .p15{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
     .p10{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd}
@@ -133,16 +133,16 @@
     .plate-eq{color:var(--text2);font-size:11px}
 
     /* BUTTONS */
-    .btn{padding:13px 20px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all .15s;letter-spacing:.5px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase}
+    .btn{padding:13px 20px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all .15s;letter-spacing:.5px;font-family:'DM Sans',sans-serif;text-transform:uppercase}
     .btn-full{width:100%}
     .btn-primary{background:var(--accent);color:#fff}
     .btn-primary:active{background:#b83020}
     .btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
     .btn-danger{background:#fee2e2;color:var(--red);border:1px solid #fca5a5}
     .btn-sm{padding:7px 13px;font-size:12px;border-radius:8px}
-    textarea{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:11px 12px;border-radius:8px;font-size:13px;width:100%;resize:vertical;font-family:'Barlow Condensed',sans-serif}
+    textarea{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:11px 12px;border-radius:8px;font-size:13px;width:100%;resize:vertical;font-family:'DM Sans',sans-serif}
     textarea:focus{outline:none;border-color:var(--accent)}
-    select{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:13px;width:100%;font-family:'Barlow Condensed',sans-serif}
+    select{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:13px;width:100%;font-family:'DM Sans',sans-serif}
     select:focus{outline:none;border-color:var(--accent)}
 
     /* HISTORY */
@@ -154,7 +154,7 @@
 
     /* PROGRAM */
     .prog-ex{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
-    .prog-ex-name{font-size:13px;font-weight:700;margin-bottom:2px;font-family:'Barlow Condensed',sans-serif}
+    .prog-ex-name{font-size:13px;font-weight:700;margin-bottom:2px;font-family:'DM Sans',sans-serif}
     .prog-ex-note{font-size:11px;color:var(--text2)}
     .prog-ex-sets{font-family:'Oswald',sans-serif;font-size:13px;color:var(--text2);white-space:nowrap;margin-left:12px;padding-top:2px;font-weight:600}
     .prog-tip{background:var(--card2);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 6px 6px 0;font-size:12px;color:var(--text2);margin-top:10px;line-height:1.5}
@@ -166,7 +166,7 @@
     /* INPUTS */
     .ig{margin-bottom:12px}
     .ig label{display:block;font-size:10px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
-    .ig input{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:11px 12px;border-radius:8px;font-size:14px;width:100%;font-family:'Barlow Condensed',sans-serif}
+    .ig input{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:11px 12px;border-radius:8px;font-size:14px;width:100%;font-family:'DM Sans',sans-serif}
     .ig input:focus{outline:none;border-color:var(--accent)}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
@@ -179,13 +179,13 @@
     /* EMPTY + TOAST */
     .empty{text-align:center;padding:40px 20px;color:var(--text2)}
     .empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
-    .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) scale(.95);background:#111;color:#fff;padding:11px 20px;border-radius:10px;font-weight:700;font-size:13px;z-index:999;opacity:0;pointer-events:none;transition:all .25s;white-space:nowrap;font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px}
+    .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) scale(.95);background:#111;color:#fff;padding:11px 20px;border-radius:10px;font-weight:700;font-size:13px;z-index:999;opacity:0;pointer-events:none;transition:all .25s;white-space:nowrap;font-family:'DM Sans',sans-serif;letter-spacing:.3px}
     .toast.show{opacity:1;transform:translateX(-50%) scale(1)}
 
     /* TABS */
     .tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none}
     .tabs::-webkit-scrollbar{display:none}
-    .tab{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;transition:all .15s;text-transform:uppercase;letter-spacing:.5px;box-shadow:var(--shadow)}
+    .tab{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;transition:all .15s;text-transform:uppercase;letter-spacing:.5px;box-shadow:var(--shadow)}
     .tab.act{background:var(--accent);color:#fff;border-color:var(--accent)}
     .pr-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
 
@@ -198,19 +198,19 @@
     .session-clock{font-family:'Oswald',sans-serif;font-size:14px;color:var(--text2);font-weight:600;font-variant-numeric:tabular-nums}
 
     /* RPE */
-    .rpe-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;font-family:'Barlow Condensed',sans-serif}
+    .rpe-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;font-family:'DM Sans',sans-serif}
     .rpe-low{background:#dcfce7;color:var(--green)}
     .rpe-mid{background:#fffbeb;color:var(--gold)}
     .rpe-high{background:#fee2e2;color:var(--red)}
 
     /* TIMER SETTINGS */
     .timer-settings{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
-    .timer-preset{padding:7px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;transition:all .15s;text-transform:uppercase}
+    .timer-preset{padding:7px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;transition:all .15s;text-transform:uppercase}
     .timer-preset.act{background:var(--accent);color:#fff;border-color:var(--accent)}
 
     /* RPE BUTTONS */
     .rpe-grid{display:flex;gap:2px;justify-content:center}
-    .rpe-btn{width:20px;height:26px;border-radius:4px;border:none;cursor:pointer;font-size:10px;font-weight:700;opacity:.35;transition:all .15s;padding:0;line-height:1;font-family:'Barlow Condensed',sans-serif}
+    .rpe-btn{width:20px;height:26px;border-radius:4px;border:none;cursor:pointer;font-size:10px;font-weight:700;opacity:.35;transition:all .15s;padding:0;line-height:1;font-family:'DM Sans',sans-serif}
     .rpe-btn:active{transform:scale(.9)}
     .rpe-btn.rpe-sel{opacity:1;box-shadow:0 0 0 2px currentColor;transform:scale(1.08)}
     .rpe-btn.rpe-low{background:#dcfce7;color:var(--green)}
@@ -218,7 +218,7 @@
     .rpe-btn.rpe-high{background:#fee2e2;color:var(--red)}
 
     /* WARM-UP */
-    .wu-btn{width:22px;height:22px;border-radius:5px;border:1.5px solid var(--border);background:transparent;color:var(--text3);font-size:9px;font-weight:800;cursor:pointer;line-height:1;padding:0;transition:all .15s;flex-shrink:0;font-family:'Barlow Condensed',sans-serif}
+    .wu-btn{width:22px;height:22px;border-radius:5px;border:1.5px solid var(--border);background:transparent;color:var(--text3);font-size:9px;font-weight:800;cursor:pointer;line-height:1;padding:0;transition:all .15s;flex-shrink:0;font-family:'DM Sans',sans-serif}
     .wu-btn.active{background:#fffbeb;border-color:var(--gold);color:var(--gold)}
     tr.wu-row td{opacity:.42}
     tr.wu-row .ck{opacity:1}
@@ -227,27 +227,27 @@
     .edit-modal{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.55);align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0}
     .edit-modal-box{background:var(--card);border-radius:14px;padding:20px;width:calc(100% - 32px);max-width:620px;margin:auto;border:1px solid var(--border);box-shadow:var(--shadow-md)}
     .edit-ex-block{background:var(--card2);border-radius:8px;padding:12px;margin-bottom:10px;border:1px solid var(--border)}
-    .edit-ex-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;font-family:'Barlow Condensed',sans-serif}
+    .edit-ex-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;font-family:'DM Sans',sans-serif}
     .edit-set-row{display:grid;grid-template-columns:20px 1fr 1fr 60px;gap:6px;align-items:center;margin-bottom:6px;font-size:11px;color:var(--text2)}
-    .edit-inp{background:var(--card3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 6px;width:100%;font-size:12px;text-align:center;font-family:'Barlow Condensed',sans-serif}
+    .edit-inp{background:var(--card3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 6px;width:100%;font-size:12px;text-align:center;font-family:'DM Sans',sans-serif}
 
     /* SWAP MODAL */
-    .swap-btn{background:#ede9fe;border:1px solid #c4b5fd;color:var(--legs);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.3px;white-space:nowrap;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase}
+    .swap-btn{background:#ede9fe;border:1px solid #c4b5fd;color:var(--legs);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.3px;white-space:nowrap;font-family:'DM Sans',sans-serif;text-transform:uppercase}
     .swap-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center}
     .swap-modal-box{background:var(--card);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:640px;border-top:1px solid var(--border);max-height:72vh;overflow-y:auto;box-shadow:var(--shadow-md)}
     .swap-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;color:var(--text);letter-spacing:.5px;text-transform:uppercase}
     .swap-opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
-    .swap-opt{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:12px 14px;text-align:left;font-size:13px;cursor:pointer;transition:background .12s;font-family:'Barlow Condensed',sans-serif;font-weight:600}
+    .swap-opt{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:12px 14px;text-align:left;font-size:13px;cursor:pointer;transition:background .12s;font-family:'DM Sans',sans-serif;font-weight:600}
     .swap-opt:hover{background:var(--card3)}
 
     /* BAR SELECTOR */
-    .bar-sel{background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase}
+    .bar-sel{background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;text-transform:uppercase}
     .bar-sel.act{background:#fee2e2;border-color:#fca5a5;color:var(--accent)}
 
     /* HEATMAP */
     .hm-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:4px 0}
     .hm-tile{border-radius:8px;padding:10px 8px;border:1px solid var(--border);transition:all .2s;cursor:default}
-    .hm-tile-name{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px}
+    .hm-tile-name{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px}
     .hm-set-row{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
     .hm-set-count{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;line-height:1}
     .hm-set-target{font-size:9px;color:var(--text3);font-weight:600}
@@ -265,7 +265,7 @@
     .tweak-row{margin-bottom:12px}
     .tweak-label{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
     .tweak-opts{display:flex;gap:6px;flex-wrap:wrap}
-    .tweak-opt{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-size:11px;font-weight:700;transition:all .15s;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase}
+    .tweak-opt{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-size:11px;font-weight:700;transition:all .15s;font-family:'DM Sans',sans-serif;text-transform:uppercase}
     .tweak-opt.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
     @media(max-width:360px){.sg{grid-template-columns:repeat(2,1fr)}.sv{font-size:20px}}
@@ -278,7 +278,12 @@
     <div class="hdr-logo"><span>Nour</span> Fitness</div>
     <div class="hdr-sub" id="hdr-date"></div>
   </div>
-  <div class="hdr-streak" id="hdr-streak">0 Day Streak</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button id="mode-toggle" onclick="toggleMode()" style="background:none;border:1px solid var(--border);border-radius:20px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .2s;flex-shrink:0" title="Toggle dark/light mode">
+      <svg id="mode-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    </button>
+    <div class="hdr-streak" id="hdr-streak">0 Day Streak</div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -332,7 +337,7 @@
       <div id="creatine-info" style="font-size:13px;color:var(--text2);margin-bottom:10px"></div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="logCreatine()">Mark Today</button>
-        <input type="date" id="creatine-backdate" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:12px;font-family:'Barlow Condensed',sans-serif" title="Log for a past date"/>
+        <input type="date" id="creatine-backdate" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif" title="Log for a past date"/>
         <button class="btn btn-secondary btn-sm" onclick="logCreatineDate()">Log Past Date</button>
       </div>
     </div>
@@ -342,7 +347,7 @@
   <div class="page" id="page-workout">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
       <div id="wo-date" style="font-size:12px;color:var(--text2);flex:1;font-weight:600"></div>
-      <input type="date" id="wo-log-date" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:0 10px;border-radius:8px;font-size:12px;height:30px;line-height:30px;-webkit-appearance:none;appearance:none;min-width:0;width:auto;font-family:'Barlow Condensed',sans-serif"/>
+      <input type="date" id="wo-log-date" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:0 10px;border-radius:8px;font-size:12px;height:30px;line-height:30px;-webkit-appearance:none;appearance:none;min-width:0;width:auto;font-family:'DM Sans',sans-serif"/>
     </div>
 
     <div id="timer-settings-bar" style="display:none">
@@ -531,7 +536,7 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
         <div class="ig">
           <label>Muscle Group</label>
-          <select id="ce-mg" style="background:var(--card3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;width:100%;font-family:'Barlow Condensed',sans-serif">
+          <select id="ce-mg" style="background:var(--card3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;width:100%;font-family:'DM Sans',sans-serif">
             <option value="">— Pick group —</option>
             <option>Chest</option><option>Back</option><option>Shoulders</option>
             <option>Biceps</option><option>Triceps</option><option>Quads</option>
@@ -540,7 +545,7 @@
         </div>
         <div class="ig">
           <label>Equipment</label>
-          <select id="ce-eq" style="background:var(--card3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;width:100%;font-family:'Barlow Condensed',sans-serif">
+          <select id="ce-eq" style="background:var(--card3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;width:100%;font-family:'DM Sans',sans-serif">
             <option value="">— Pick type —</option>
             <option>barbell</option><option>dumbbell</option><option>cable</option>
             <option>machine</option><option>bodyweight</option>
@@ -602,7 +607,7 @@
       <button onclick="closeSwap()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1">×</button>
     </div>
     <div style="font-size:11px;color:var(--text2);margin-top:4px" id="swap-subtitle"></div>
-    <label style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;cursor:pointer;font-size:12px;color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-weight:600">
+    <label style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;cursor:pointer;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;font-weight:600">
       <input type="checkbox" id="swap-permanent" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer">
       Save permanently for all future sessions
     </label>
@@ -1170,7 +1175,7 @@ function renderCustomExercises(){
   el.innerHTML=customExercises.map(e=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--card2);border-radius:8px;border:1px solid var(--border);margin-bottom:6px">
       <div>
-        <span style="font-size:13px;font-weight:700;color:var(--text);font-family:'Barlow Condensed',sans-serif">${e.name}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--text);font-family:'DM Sans',sans-serif">${e.name}</span>
         <span style="font-size:10px;color:var(--text2);margin-left:8px">${e.mg} · ${e.eq}</span>
       </div>
       <button onclick="deleteCustomExercise('${e.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}') " style="background:none;border:none;color:var(--red);cursor:pointer;font-size:20px;padding:0 4px;line-height:1">×</button>
@@ -1738,7 +1743,7 @@ function renderHistory(){
     }).join('');
     return`<div class="hi" onclick="document.getElementById('hd-${s.id}').classList.toggle('open')">
       <div class="hi-header"><div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px">${fmtLong(s.date)}</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px">${fmtLong(s.date)}</div>
         ${(()=>{const hs=(s.exercises||[]).reduce((a,ex)=>a+(ex.sets||[]).filter(st=>st.done&&!st.warmup&&+st.rpe>=8).length,0);return`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${badge}${vol?`<span style="font-size:11px;color:var(--text2)">${vol.toLocaleString()} kg</span>`:''}${hs?`<span style="font-size:11px;color:var(--red);font-weight:700">${hs} hard</span>`:''}${s.duration?`<span style="font-size:11px;color:var(--text2)">${s.duration}min</span>`:''}</div>`})()}
       </div><span style="color:var(--text3);font-size:18px">›</span></div>
       <div class="hi-detail" id="hd-${s.id}">${rows}${s.notes?`<div style="margin-top:8px;font-style:italic;font-size:12px">"${s.notes}"</div>`:''}
@@ -1969,7 +1974,41 @@ function importData(){
   }catch(e){toast('Failed to read code — make sure you copied it fully');}
 }
 function clearAll(){if(!confirm('Delete ALL data permanently?'))return;sessions=[];bodyStats=[];creatineDays=[];ssv();bsv();csv();toast('Cleared');switchPage('home')}
-window.addEventListener('DOMContentLoaded',()=>{renderHome();renderProgram();});
+
+// ═══════════════════════════════════════════════
+//  DARK / LIGHT MODE
+// ═══════════════════════════════════════════════
+let darkMode = localStorage.getItem('nf_darkmode') !== 'false'; // default dark
+
+function applyMode(){
+  const r = document.documentElement.style;
+  if(darkMode){
+    r.setProperty('--bg','#0b0b0f');r.setProperty('--card','#14141a');
+    r.setProperty('--card2','#1b1b24');r.setProperty('--card3','#22222e');
+    r.setProperty('--text','#f0f0f0');r.setProperty('--text2','#7a7a8e');
+    r.setProperty('--text3','#44445a');r.setProperty('--border','#24243a');
+    document.querySelector('.hdr').style.background='rgba(11,11,15,.97)';
+    document.querySelector('.nav').style.background='rgba(20,20,26,.97)';
+    // sun icon when dark (click to go light)
+    document.getElementById('mode-icon').innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  } else {
+    r.setProperty('--bg','#f4f3ee');r.setProperty('--card','#ffffff');
+    r.setProperty('--card2','#eeece6');r.setProperty('--card3','#e4e2db');
+    r.setProperty('--text','#111111');r.setProperty('--text2','#666666');
+    r.setProperty('--text3','#aaaaaa');r.setProperty('--border','#e0dfd8');
+    document.querySelector('.hdr').style.background='rgba(244,243,238,.97)';
+    document.querySelector('.nav').style.background='rgba(255,255,255,.97)';
+    // moon icon when light (click to go dark)
+    document.getElementById('mode-icon').innerHTML='<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+  }
+}
+function toggleMode(){
+  darkMode=!darkMode;
+  localStorage.setItem('nf_darkmode', darkMode);
+  applyMode();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{applyMode();renderHome();renderProgram();});
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 </script>
 </body>
