@@ -1222,6 +1222,17 @@ function confirmSwap(btn){
   }
   const nameEl=document.getElementById('exn-'+swapEI);
   if(nameEl)nameEl.textContent=newName;
+  // FIX 2: update the exercise description/tip to match the new exercise
+  const exCardForTip=document.getElementById('ex-'+swapEI);
+  if(exCardForTip){
+    let newNote='';
+    for(const t of Object.keys(PROGRAM)){
+      const found=(PROGRAM[t].exercises||[]).find(e=>e.name===newName);
+      if(found&&found.note){newNote=found.note;break;}
+    }
+    const tipEl=exCardForTip.querySelector('.ex-tip');
+    if(tipEl)tipEl.textContent=newNote;
+  }
   const newEq=(PROGRAM[activeType]&&PROGRAM[activeType].exercises&&PROGRAM[activeType].exercises[swapEI]&&PROGRAM[activeType].exercises[swapEI].eq)||getEqForName(newName)||'machine';
   const pcDiv=document.getElementById('pc-'+swapEI);
   if(pcDiv){
@@ -1589,7 +1600,19 @@ function addSet(ei){
 }
 function onWeightChange(ei,si){
   const p=PROGRAM[activeType];
-  const ex=p?.exercises[ei];
+  const originalEx=p?.exercises[ei];
+  // FIX 3: if this exercise was swapped, look up the ACTUAL displayed exercise
+  // so that equipment type and %1RM history are correct for the swapped exercise
+  const displayName=currentSwaps[ei]||originalEx?.name||'';
+  let ex=originalEx;
+  if(currentSwaps[ei]){
+    for(const t of Object.keys(PROGRAM)){
+      const found=(PROGRAM[t].exercises||[]).find(e=>e.name===displayName);
+      if(found){ex=found;break;}
+    }
+    // If not in any program definition, synthesise a minimal object using detected equipment
+    if(ex===originalEx){const deq=getEqForName(displayName);if(deq)ex={...originalEx,name:displayName,eq:deq};}
+  }
   const wVal=document.getElementById('w-'+ei+'-'+si)?.value;
   if(ex?.eq==='barbell'){
     const pr=document.getElementById('pr-'+ei);
@@ -1603,7 +1626,7 @@ function onWeightChange(ei,si){
     const useW=ex?.eq==='bodyweight'?ew:rawW;
     if(useW>0&&r>=1&&r<=30){
       const cur=est1RM(useW,r);
-      const best=getBestE1RM(ex?.name||'');
+      const best=getBestE1RM(displayName); // use displayName so swapped exercises reference correct history
       if(best>0&&cur>0){
         const pct=Math.round(cur/best*100);
         eEl.textContent=pct+'%';
@@ -1656,7 +1679,13 @@ function restoreDraft(){
   document.getElementById('draft-banner').innerHTML='';
   switchPage('workout');
   selectType(d.type);
-  if(d.startedAt){sessionStartTime=d.startedAt;}
+  if(d.startedAt){
+    sessionStartTime=d.startedAt;
+    // FIX 1: immediately update the clock so it shows the real elapsed time
+    // instead of sitting at 0:00 for up to one second after restoration
+    const cel=document.getElementById('session-clock');
+    if(cel){const el2=Math.floor((Date.now()-sessionStartTime)/1000);const em=Math.floor(el2/60),es=el2%60;cel.textContent=`${em}:${String(es).padStart(2,'0')}`;}
+  }
   setTimeout(()=>{
     (d.exercises||[]).forEach((ex,i)=>{
       (ex.sets||[]).forEach((st,si)=>{
