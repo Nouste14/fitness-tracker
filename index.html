@@ -861,6 +861,16 @@ const DEFAULT_PROGRAM={
 };
 
 let PROGRAM=ld(K.p)||DEFAULT_PROGRAM;
+// Migration: if the saved program is from an older version (missing new keys),
+// merge DEFAULT_PROGRAM in so the new workout types render correctly.
+// This preserves any permanent swaps the user made on legacy types while
+// adding the new upper-a/upper-b/upper-c/legs definitions.
+if(!PROGRAM['upper-a']||!PROGRAM['upper-b']||!PROGRAM['upper-c']||!PROGRAM['legs']){
+  PROGRAM=Object.assign({},DEFAULT_PROGRAM,PROGRAM);
+  // Overwrite the new keys with fresh defaults (don't let stale data block them)
+  ['upper-a','upper-b','upper-c','legs'].forEach(k=>PROGRAM[k]=DEFAULT_PROGRAM[k]);
+  sv(K.p,PROGRAM);
+}
 const psv=()=>sv(K.p,PROGRAM);
 // CYCLE: Upper A → Legs → Rest → Upper B → Upper C → Rest → repeat
 // Never more than 2 days in a row. Legs once per week. 4 training days.
