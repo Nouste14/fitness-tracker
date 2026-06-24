@@ -76,9 +76,10 @@
     .wtb{padding:16px 12px;border-radius:10px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:center;font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--text2);transition:all .2s;user-select:none;letter-spacing:.5px;box-shadow:var(--shadow)}
     .wtb .wt-sub{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;opacity:.7;margin-top:3px;letter-spacing:.3px}
     .wtb.suggested{border-color:var(--gold);background:var(--card2);color:var(--text)}
-    .wtb.sel-push-a,.wtb.sel-push-b,.wtb.sel-upper-a,.wtb.sel-upper-c{background:var(--push);border-color:var(--push);color:#fff}
-    .wtb.sel-pull-a,.wtb.sel-pull-b,.wtb.sel-upper-b{background:var(--pull);border-color:var(--pull);color:#fff}
+    .wtb.sel-push-a,.wtb.sel-push-b,.wtb.sel-upper-a,.wtb.sel-upper-c,.wtb.sel-push{background:var(--push);border-color:var(--push);color:#fff}
+    .wtb.sel-pull-a,.wtb.sel-pull-b,.wtb.sel-upper-b,.wtb.sel-pull{background:var(--pull);border-color:var(--pull);color:#fff}
     .wtb.sel-legs-a,.wtb.sel-legs-b,.wtb.sel-legs{background:var(--legs);border-color:var(--legs);color:#fff}
+    .wtb.sel-upper{background:linear-gradient(135deg,var(--push) 0%,var(--pull) 100%);border-color:var(--push);color:#fff}
     .wtb.sel-rest{background:#555;border-color:#555;color:#fff}
 
     /* EXERCISE LOG */
@@ -332,11 +333,20 @@
     </div>
     <div class="card">
       <div class="card-title">Creatine Tracker</div>
+      <div id="creatine-banner" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:10px"></div>
       <div id="creatine-info" style="font-size:13px;color:var(--text2);margin-bottom:10px"></div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" onclick="logCreatine()">Mark Today</button>
+      <div id="creatine-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px"></div>
+      <div id="creatine-cal" style="margin-bottom:12px"></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="btn btn-primary btn-sm" onclick="logCreatine()">Mark Today</button>
         <input type="date" id="creatine-backdate" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif" title="Log for a past date"/>
         <button class="btn btn-secondary btn-sm" onclick="logCreatineDate()">Log Past Date</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--text2);font-weight:600">Daily reminder:</span>
+        <input type="time" id="creatine-reminder-time" onchange="setCreatineReminderTime(this.value)" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif"/>
+        <button class="btn btn-secondary btn-sm" onclick="testCreatineReminder()" style="padding:5px 10px;font-size:11px">Test</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearCreatineReminder()" style="padding:5px 10px;font-size:11px">Off</button>
       </div>
     </div>
   </div>
@@ -756,7 +766,7 @@ window.parent.postMessage({type:'__edit_mode_available'}, '*');
 //  DATA
 // ═══════════════════════════════════════════════
 const START='2026-03-22';
-const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft',p:'nf3_program',ce:'nf3_custom'};
+const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft',p:'nf3_program',ce:'nf3_custom',crt:'nf3_creatineReminderTime'};
 const ld=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 let sessions=ld(K.s)||[], bodyStats=ld(K.b)||[], creatineDays=ld(K.c)||[];
@@ -795,59 +805,53 @@ const WEEKLY_SET_TARGETS={
 };
 
 // ═══════════════════════════════════════════════
-//  PROGRAM — 4 DAY HYPERTROPHY SPLIT
-//  Designed for: 72kg, 180cm, high metabolism, works 11am-7pm, trains after work
-//  Legs once/week. Never more than 2 days in a row. Face pulls every upper day.
+//  PROGRAM — 4 DAY PPL+U SPLIT (June 2026 rewrite)
+//  Designed for: 72kg, 180cm, works 11am-8pm, trains after work
+//  Mon Push, Tue Pull, Wed Rest, Thu Legs, Fri Upper, Sat-Sun Rest
+//  5 exercises per session, ~50-55 min. Every muscle 1.5-2x/week.
 // ═══════════════════════════════════════════════
 const DEFAULT_PROGRAM={
-  'upper-a':{label:'Upper A',sub:'Chest & Back Power',color:'#d63b24',bc:'b-push-a',
-    tip:'Heavy pressing and rowing day. 2-3 min rest on barbell compounds. Your chest and back are the biggest upper body muscles — prioritise them with heavy loads and full range of motion. Biceps and triceps get indirect work from the compounds, then direct finishing work.',
+  'push':{label:'Push',sub:'Chest + Shoulders + Triceps',color:'#d63b24',bc:'b-push-a',
+    tip:'Heavy pressing day. 2-3 min rest on the bench press, 90 sec on the rest. Top of rep range on all sets → add 2.5kg next session. 5 exercises, ~50 min, walk out fresh enough to train tomorrow.',
     exercises:[
-      {name:'Barbell Bench Press',sets:4,reps:'6–8',eq:'barbell',note:'Flat bench station, standard Olympic barbell (20kg). Grip just outside shoulder-width — your ring finger should line up with the knurling rings. Retract shoulder blades, slight arch in lower back, feet flat and driving into the floor. Unrack, lower the bar to your nipple line with a controlled 2-second negative. Touch your chest (no bouncing), then drive up explosively. Full lockout at the top.'},
-      {name:'Barbell Row',sets:4,reps:'8–10',eq:'barbell',note:'Same Olympic barbell, standing. Overhand grip slightly wider than shoulder-width. Hinge at the hips until your torso is roughly 45 degrees to the floor — keep your lower back flat, not rounded. Pull the bar to your lower ribcage/belly button, squeezing your shoulder blades together hard at the top (1-second hold). Lower under control. If you feel it mostly in your arms, your grip is too narrow or you are not initiating the pull with your elbows.'},
-      {name:'Incline DB Press',sets:3,reps:'10–12',eq:'dumbbell',note:'Adjustable bench set to 30 degrees (2 notches up from flat on most benches). Grab a pair of dumbbells and sit back. Start with the dumbbells at shoulder level, palms facing forward. Press up and slightly inward so the dumbbells nearly touch at the top. Lower with a 2-3 second negative until you feel a deep stretch across the upper chest. Weight listed is PER dumbbell.'},
-      {name:'Lat Pulldown (Wide)',sets:3,reps:'10–12',eq:'cable',note:'Lat pulldown machine with the WIDE straight bar attachment. Sit with thigh pads snug against your legs. Grip the bar outside shoulder-width (where the bar bends). Lean back about 10-15 degrees. Pull the bar to your upper chest, leading with your elbows — imagine pulling them into your back pockets. Squeeze your lats at the bottom, then let the bar rise under control to a FULL stretch at the top (arms fully extended, feel your lats lengthen).'},
-      {name:'Cable Fly (Low-to-High)',sets:3,reps:'12–15',eq:'cable',note:'Dual cable machine, pulleys set to the LOWEST position. Use single D-handle attachments. Stand in the centre, one foot slightly forward for balance. With a slight bend in your elbows (locked in place), bring your hands up and together in an arc until they meet at chin height. Squeeze your upper chest hard for 1 second at the top. Lower slowly along the same arc. Do not turn this into a press.'},
-      {name:'Face Pulls',sets:3,reps:'15–20',eq:'cable',note:'Cable machine, pulley set to UPPER CHEST height. Use the rope attachment (the double-ended one). Grip with thumbs pointing toward you (overhand). Pull the rope toward your face, splitting it apart so your hands end up beside your ears. Externally rotate — your hands should finish higher than your elbows. Squeeze your rear delts and upper back for 1 second. This is NON-NEGOTIABLE for shoulder health when you press 3 times per week.'},
-      {name:'EZ Bar Curl',sets:3,reps:'10–12',eq:'barbell',note:'EZ curl bar (the short zig-zag shaped bar, usually 10kg). Grip the inner angled handles (the narrower V-shape). Stand with feet hip-width. Keep your elbows pinned at your sides throughout — they should not drift forward or back. Curl the bar up to your shoulders, squeezing your biceps hard at the peak. Lower with a 2-second negative all the way down to full arm extension. No swinging your back.'},
-      {name:'Tricep Pushdown',sets:3,reps:'12–15',eq:'cable',note:'Cable machine, pulley set to the TOP. Use the straight bar attachment (not the rope, not the V-bar). Stand close to the machine. Pin your elbows tight to your ribs — they stay there the entire set. Push the bar down until your arms are fully locked out, squeezing your triceps hard at the bottom for 1 second. Let the bar come back up to about chest height (no higher). If your elbows flare out, the weight is too heavy.'},
+      {name:'Barbell Bench Press',sets:4,reps:'6–8',eq:'barbell',note:'Flat bench, Olympic barbell (20kg). Grip just outside shoulder-width. Retract shoulder blades, slight arch, feet driving into the floor. Lower to nipple line with a 2-second negative, touch chest (no bounce), drive up explosively. Full lockout at the top. Starting weight: 60kg.'},
+      {name:'Seated DB Shoulder Press',sets:3,reps:'8–10',eq:'dumbbell',note:'Adjustable bench at 85-90 degrees (almost vertical). Dumbbells at ear level, palms forward. Press straight up to full extension. Lower back to ear level under control — do not let the dumbbells drop below your ears. Weight is PER dumbbell. Starting weight: 22kg per hand.'},
+      {name:'Incline DB Press',sets:3,reps:'10–12',eq:'dumbbell',note:'Bench at 30 degrees. Dumbbells at shoulder level, palms forward. Press up and slightly inward so they nearly touch at the top. Lower with a 2-3 second negative to a deep upper chest stretch. Weight is PER dumbbell. Starting weight: 22kg per hand.'},
+      {name:'Lateral Raise (Cable) - One Hand',sets:3,reps:'12–15',eq:'cable',note:'Single cable, pulley at the LOWEST position. Stand sideways, grab the D-handle with the hand FURTHEST from the machine (cable crosses behind your body). Slight bend in elbow. Raise out to ear height, leading with the elbow. 2-second lower. Do all reps one side, then switch. Starting weight: 5kg per side.'},
+      {name:'Tricep Pushdown',sets:3,reps:'10–12',eq:'cable',note:'Cable, pulley at TOP. Straight bar attachment (not rope). Pin elbows to your ribs the entire set. Push down to full lockout, squeeze 1 second, return to chest height (no higher). If elbows flare, weight is too heavy. Starting weight: 30kg.'},
+    ]},
+  'pull':{label:'Pull',sub:'Back + Biceps',color:'#2563eb',bc:'b-pull-a',
+    tip:'Lat width first while you are fresh, then row for thickness, then bicep finishers. 2 min rest on the rows, 90 sec on rest. Face pulls are non-negotiable for shoulder health.',
+    exercises:[
+      {name:'Lat Pulldown (Wide)',sets:4,reps:'8–10',eq:'cable',note:'Wide straight bar attachment. Sit with thigh pads snug. Grip outside shoulder-width (where the bar bends). Lean back 10-15 degrees. Pull to upper chest, leading with elbows — pull them into your back pockets. Squeeze lats, release to a FULL stretch at the top. Starting weight: 45kg.'},
+      {name:'Barbell Row',sets:4,reps:'8–10',eq:'barbell',note:'Olympic barbell, standing. Overhand grip slightly wider than shoulder-width. Hinge to ~45 degrees, lower back FLAT (not rounded). Pull to lower ribcage/belly, squeezing shoulder blades together hard at the top (1-sec hold). Lower under control. If you feel it in your arms, your elbows are not leading. Starting weight: 40kg.'},
+      {name:'Cable Pullover',sets:3,reps:'10–12',eq:'cable',note:'Cable machine, pulley at the TOP. Straight bar or rope. Stand 2 steps back, slight hip hinge, arms extended overhead. Keeping elbows locked at a slight bend, pull the bar/rope down to your thighs in an arc — driven entirely by your lats. Slow controlled return. This is your secret weapon for lat thickness. Starting weight: 32kg.'},
+      {name:'Face Pulls',sets:3,reps:'15–20',eq:'cable',note:'Cable, pulley at UPPER CHEST height. Rope attachment. Pull toward your face, splitting the rope so hands finish beside your ears with elbows higher than hands. Squeeze rear delts 1 second. Do these every upper-body day without exception. Starting weight: 15kg.'},
+      {name:'EZ Bar Curl',sets:3,reps:'10–12',eq:'barbell',note:'EZ curl bar (10kg). Inner angled handles. Elbows pinned at your sides — do not let them drift forward. Curl to shoulders, squeeze hard at the peak, 2-second lower to FULL extension. No back swing. Starting weight: 25kg.'},
     ]},
   'legs':{label:'Legs',sub:'Full Lower Body',color:'#7c3aed',bc:'b-legs-a',
-    tip:'One shot per week — make it count. Quads, hamstrings, glutes, calves. You hit everything today. Rest 2-3 minutes between heavy compound sets (leg press, Smith stiff-leg). This is the hardest session of the week and the most important for overall muscle mass.',
+    tip:'One legs session per week — make it count. Quads, hamstrings, glutes, calves. Rest 2-3 min on Smith squat and RDL, 60 sec on the rest. This is your most important session for total muscle mass.',
     exercises:[
-      {name:'Leg Press',sets:4,reps:'8–10',eq:'machine',note:'45-degree plate-loaded leg press machine (the angled sled, not the horizontal one). Sit with your back flat against the pad and your lower back pushed into it (no gap). Place feet shoulder-width apart in the CENTRE of the platform. Unrack the sled, lower it with control until your knees are at roughly 90 degrees — go deeper if your lower back stays flat. Press back up explosively but do NOT lock out your knees at the top (keep a slight bend). Load this heavy — this is your main quad builder.'},
-      {name:'Stiff-Leg Deadlift (Smith Machine)',sets:4,reps:'10–12',eq:'machine',note:'Smith machine — stand on the platform with the bar in front of you (NOT behind). Feet hip-width, toes slightly under the bar. Unhook the bar with an overhand grip just outside your hips. With legs almost straight (very slight knee bend, locked in place throughout), push your hips BACK and let the bar slide down the front of your thighs. Keep your back flat — shoulder blades squeezed. Go down until you feel a strong stretch in your hamstrings (usually mid-shin level). Drive your hips forward to stand back up. Squeeze your glutes at the top. The Smith guides the bar path so you can focus entirely on the hamstring stretch. Same stimulus as an RDL without the balance demand.'},
-      {name:'Leg Extension',sets:3,reps:'12–15',eq:'machine',note:'Leg extension machine (the one where you sit upright and kick your shins out). Adjust the back pad so your knees line up with the machine pivot point. Adjust the ankle pad so it sits on your lower shin, just above your ankle — not on top of your foot. Extend your legs until fully straight, squeezing your quads HARD at the top for a 1-second pause. Lower slowly with a 2-second negative. This is a quad isolation finisher — lighter weight, focus on the contraction.'},
-      {name:'Lying Leg Curl',sets:3,reps:'10–12',eq:'machine',note:'Lying (prone) leg curl machine — lie face down. Adjust the ankle pad so it sits just above your heels (on your Achilles area, not on your calves). Grip the handles and keep your hips pressed into the pad throughout (no lifting your hips). Curl your heels toward your glutes, squeezing your hamstrings hard at the top. Lower with a 2-second negative. If your gym only has a seated leg curl, use that — same weight, same form cues, just seated.'},
-      {name:'Hip Thrust',sets:3,reps:'10–12',eq:'barbell',note:'Set up a flat bench against a wall so it cannot slide. Sit on the floor with your upper back against the edge of the bench (just below your shoulder blades). Roll a loaded barbell over your legs into your hip crease — use a barbell pad or folded towel for comfort. Feet flat on the floor, shoulder-width apart, knees at about 90 degrees. Drive through your heels and thrust your hips up until your body forms a straight line from shoulders to knees. Squeeze your glutes HARD at the top for 2 seconds. Lower your hips back down under control. This is the number one glute builder — do not skip it.'},
-      {name:'Standing Calf Raise',sets:4,reps:'15–20',eq:'machine',note:'Standing calf raise machine — step onto the platform with the balls of your feet on the edge, heels hanging off. Place your shoulders under the pads. Drop your heels as LOW as possible to get a full stretch (hold 1 second at the bottom). Then drive up onto your toes as HIGH as possible, squeezing your calves at the top for 1 second. Full range of motion is everything for calves. If your gym does not have this machine, use the Smith machine with a step plate under your feet.'},
+      {name:'Smith Machine Squat',sets:4,reps:'6–8',eq:'machine',note:'Smith machine. Bar across upper traps (mid-trap, not on your neck). Feet shoulder-width, toes slightly out, set roughly under the bar (Smith path will guide you). Brace core, descend until thighs are parallel to the ground (deeper if mobility allows). Drive through your heels back up. Smith eliminates the balance demand so you can load it heavy and focus on the quads. Starting weight: 60kg.'},
+      {name:'Romanian Deadlift',sets:3,reps:'8–10',eq:'barbell',note:'Olympic barbell. Stand feet hip-width, bar in front of thighs, overhand grip just outside hips. Soft knee bend, lock it. Push hips BACK (not down) and let the bar slide down the front of your thighs, staying close to the body. Back FLAT, shoulder blades squeezed. Go to mid-shin or wherever you feel a strong hamstring stretch. Drive hips forward to stand, squeeze glutes at the top. Starting weight: 50kg.'},
+      {name:'Leg Press',sets:3,reps:'10–12',eq:'machine',note:'45-degree plate-loaded leg press. Back flat against the pad (no gap). Feet shoulder-width in the centre of the platform. Lower until knees are at ~90 degrees (deeper if your lower back stays flat). Press back up explosively, do NOT lock out your knees at the top. Starting weight: 80kg.'},
+      {name:'Lying Leg Curl',sets:3,reps:'10–12',eq:'machine',note:'Lie face down. Ankle pad sits just above your heels (on your Achilles area). Hips pressed into the pad throughout — do not lift them. Curl heels toward your glutes, squeezing hams hard at the top. 2-second lower. Seated leg curl works the same if your gym only has that. Starting weight: 36kg.'},
+      {name:'Standing Calf Raise',sets:4,reps:'15–20',eq:'machine',note:'Balls of feet on the platform, heels hanging. Drop heels as LOW as possible for a full stretch (1-sec hold), then drive up as HIGH as possible (1-sec squeeze). Full ROM is everything for calves. Use the Smith machine + step plate if your gym does not have this. Start with bodyweight, add weight when you can do 20 clean reps.'},
     ]},
-  'upper-b':{label:'Upper B',sub:'Shoulders & Arms',color:'#2563eb',bc:'b-pull-a',
-    tip:'Shoulder pressing first while you are fresh, then arm supersets to maximise the pump. This is your V-taper day — wide shoulders and thick arms. Rest 90 seconds on shoulder press, 60 seconds on arm work. Face pulls again for shoulder health.',
+  'upper':{label:'Upper',sub:'Mixed Push/Pull Pump Day',color:'#7c3aed',bc:'b-push-b',
+    tip:'Second hit for chest/back/shoulders this week. Moderate weight, full reps, get a pump. 90 sec rest throughout. Superset the antagonist pairs (incline press + cable row) if you want to save time.',
     exercises:[
-      {name:'Seated DB Shoulder Press',sets:4,reps:'8–10',eq:'dumbbell',note:'Adjustable bench set to 85-90 degrees (almost fully upright, one notch back from vertical). Grab a pair of dumbbells, kick them up to shoulder height using your knees. Start with the dumbbells at ear level, palms facing forward. Press straight up until the dumbbells nearly touch overhead with arms fully extended. Lower under control back to ear level. Do NOT let the dumbbells drop below your ears — that overstresses the shoulder joint. Weight is PER dumbbell.'},
-      {name:'Lat Pulldown (Neutral Grip)',sets:3,reps:'10–12',eq:'cable',note:'Lat pulldown machine with the NEUTRAL GRIP (V-bar or parallel handle) attachment — palms face each other. Sit with thigh pads snug. Lean back 10-15 degrees and pull the handle to your upper chest, squeezing your lats at the bottom. This grip hits your lower lats more than the wide grip. Full stretch at the top on every rep.'},
-      {name:'Cable Lateral Raises',sets:4,reps:'15–20',eq:'cable',note:'Single cable, pulley at the LOWEST position. Stand sideways to the machine. Grab the D-handle with the hand FURTHEST from the machine (cable crosses behind your body). Slight bend in your elbow. Raise your arm out to the side until your hand reaches ear height. Lead with your ELBOW, not your hand — imagine pouring a jug of water. Lower slowly (2-second negative). Do all reps on one side, then switch. Lighter weight, high reps — these build the side delt cap that creates shoulder width.'},
-      {name:'Chest-Supported Row',sets:3,reps:'10–12',eq:'machine',note:'Plate-loaded or pin-loaded chest-supported row machine (the one where you lie face-down on an angled pad). Adjust the chest pad height so you can fully extend your arms without the weight stack touching. Grab the handles. Pull them toward your lower ribs, squeezing your shoulder blades together at the peak for 1 second. Lower under control to a full arm stretch. The chest pad eliminates all cheating — pure back contraction.'},
-      {name:'Face Pulls',sets:3,reps:'15–20',eq:'cable',note:'Same setup as Upper A: cable pulley at upper chest height, rope attachment, pull toward face, split the rope, hands finish beside your ears with external rotation. Rear delts and rotator cuff health. Do these every upper day without exception.'},
-      {name:'Overhead Tricep Extension',sets:3,reps:'12–15',eq:'cable',note:'Cable machine, pulley set to the BOTTOM. Use the rope attachment. Face AWAY from the machine, holding the rope behind your head with both hands. Step forward until you feel tension. Your upper arms should be beside your ears, elbows pointing forward. Extend your forearms upward until your arms are straight, squeezing your triceps at the top. Lower the rope behind your head with a 2-second negative until you feel a deep stretch in your triceps. This targets the long head (the biggest part of the tricep).'},
-      {name:'Incline DB Curl',sets:3,reps:'10–12',eq:'dumbbell',note:'Adjustable bench set to 45 degrees (roughly halfway). Sit back with a dumbbell in each hand, arms hanging straight down. This starting position stretches the long head of the bicep — that is the point. Curl the dumbbells up toward your shoulders, keeping your upper arms stationary (they should not drift forward). Squeeze at the top, lower slowly (2-second negative) all the way to a dead hang. Weight is PER dumbbell. Go lighter than normal — the stretch makes these much harder.'},
-      {name:'Hammer Curl',sets:2,reps:'12–15',eq:'dumbbell',note:'Standing with dumbbells at your sides, palms facing your body (neutral grip — thumbs up). Curl both dumbbells up simultaneously without twisting your wrists. This targets the brachialis (the muscle between your bicep and tricep that pushes the bicep up and adds arm thickness) and your forearms. Squeeze at the top, 2-second lower. Weight is PER dumbbell.'},
+      {name:'Incline Barbell Press',sets:4,reps:'8–10',eq:'barbell',note:'Bench at 30 degrees in a squat rack, or use the dedicated incline station. Olympic barbell, grip slightly wider than shoulder-width. Lower to upper chest (just below collarbone), 2-second negative, drive up to full lockout. Hits the upper chest from a different angle than flat bench. Starting weight: 50kg.'},
+      {name:'Seated Cable Row (Close Grip)',sets:4,reps:'8–10',eq:'cable',note:'V-handle close neutral grip. Feet on the platform, knees slightly bent. Arms fully extended, lean slightly forward to stretch the lats. Pull to belly button, sit upright, squeeze shoulder blades together (1-sec hold). Slow return to full stretch. No momentum. Starting weight: 36kg.'},
+      {name:'Lateral Raises (DB)',sets:3,reps:'12–15',eq:'dumbbell',note:'Standing, light dumbbells at your sides. Slight elbow bend. Raise arms out to shoulder height — going higher recruits traps. Lead with elbows, not hands. 2-second lower. Light enough to control perfectly. Weight is PER dumbbell. Starting weight: 8kg per hand.'},
+      {name:'Rear Delt Machine',sets:3,reps:'12–15',eq:'machine',note:'Reverse pec deck / rear delt machine. Sit facing the pad with chest against it. Grip the handles. Pull them apart in a horizontal arc until your arms are out to the sides, squeezing rear delts at the peak (1-sec hold). Slow return. Critical for shoulder health and that wide V-taper look. Starting weight: 36kg.'},
+      {name:'Hammer Curl',sets:3,reps:'10–12',eq:'dumbbell',note:'Standing, dumbbells at sides, palms facing your body (neutral grip, thumbs up). Curl both up without twisting your wrists. Targets the brachialis (the muscle between bicep and tricep that adds arm thickness). Squeeze at the top, 2-second lower. Weight is PER dumbbell. Starting weight: 10kg per hand.'},
+      {name:'Overhead Tricep Extension',sets:3,reps:'12–15',eq:'cable',note:'Cable, pulley at the BOTTOM. Rope attachment. Face AWAY from the machine, rope behind your head, step forward until you feel tension. Upper arms beside your ears, elbows pointing forward. Extend forearms up until arms are straight, squeeze, then lower behind your head with a 2-second negative to a deep tricep stretch. Hits the long head. Starting weight: 15kg.'},
     ]},
-  'upper-c':{label:'Upper C',sub:'Chest & Back Hypertrophy',color:'#d63b24',bc:'b-push-b',
-    tip:'Higher rep ranges today to drive blood volume and metabolic stress. Lighter than Upper A but more reps and shorter rest (60-90 seconds). Superset the push/pull pairs if you want to save time. Face pulls again — always.',
-    exercises:[
-      {name:'Incline Barbell Press',sets:4,reps:'8–10',eq:'barbell',note:'Adjustable bench set to 30 degrees inside a squat rack, or use the dedicated incline bench station. Standard Olympic barbell. Grip slightly wider than shoulder-width. Unrack, lower the bar to your upper chest (just below your collarbone) with a 2-second negative. Press up explosively to full lockout. This is your second chest-pressing session of the week, hitting the upper chest from a different angle than the flat bench.'},
-      {name:'Single Arm DB Row',sets:3,reps:'10–12',eq:'dumbbell',note:'One knee and one hand on a flat bench for support (like a kickstand). The other foot on the floor, wide for stability. Grab a dumbbell with your free hand. Let it hang straight down. Row the dumbbell toward your HIP (not your chest — that recruits your shoulder). Squeeze your lat at the top for 1 second. Lower to a full arm stretch. Do all reps on one side, then switch. Weight is PER dumbbell. Better mind-muscle connection than bilateral rows.'},
-      {name:'Machine Chest Press',sets:3,reps:'10–12',eq:'machine',note:'Pin-loaded or plate-loaded chest press machine. Adjust the seat height so the handles line up with your mid-chest (nipple line). Sit with your back firmly against the pad. Grip the handles, press forward to full extension, squeeze your chest, then return slowly under control. The machine path removes stabilisation demands — just focus on feeling the chest contract.'},
-      {name:'Seated Cable Row (Close Grip)',sets:3,reps:'10–12',eq:'cable',note:'Seated cable row station with the V-handle (close neutral grip) attachment. Sit with feet on the platform, knees slightly bent. Start with arms fully extended, leaning slightly forward to stretch the lats. Pull the handle to your belly button, sitting upright and squeezing your shoulder blades together at the peak. 1-second hold. Return slowly to the stretched position. Do not use momentum.'},
-      {name:'Lateral Raises (DB)',sets:3,reps:'15–20',eq:'dumbbell',note:'Standing with light dumbbells at your sides. Raise both arms out to the side with a slight bend in your elbows, leading with your elbows (not your hands). Stop at shoulder height — going higher recruits traps instead of side delts. Lower with a 2-second negative. Keep the weight light enough that you can control the motion perfectly. These are a shoulder finisher — burn is the goal. Weight is PER dumbbell.'},
-      {name:'Face Pulls',sets:3,reps:'15–20',eq:'cable',note:'Same setup as always: cable at upper chest height, rope attachment, pull to face, split and externally rotate. Every upper body day, no exceptions. Your shoulders will thank you.'},
-      {name:'Cable Curl (Rope)',sets:3,reps:'12–15',eq:'cable',note:'Cable machine, pulley at the BOTTOM. Use the rope attachment. Stand facing the machine, grab the rope with both hands (palms facing each other). Curl the rope up to your shoulders, splitting the rope ends apart at the top (supinate outward) for a hard bicep squeeze. Lower slowly to full extension. Constant tension throughout — cables never let the muscle rest.'},
-      {name:'Skull Crushers',sets:3,reps:'10–12',eq:'barbell',note:'Lie on a flat bench with the EZ curl bar (10kg bar). Grip the inner handles. Start with arms extended straight up over your shoulders. Keeping your upper arms PERFECTLY STILL (elbows pointing at the ceiling, not flaring out), bend at the elbows to lower the bar toward your forehead. Stop just before it touches your forehead (hence the name). Extend back up to the start. If your elbows flare, the weight is too heavy. This hammers the lateral head of the tricep.'},
-    ]},
-  
   // LEGACY PROGRAMS KEPT SO PAST HISTORY / ANALYTICS STILL RENDER PROPERLY
+  "upper-a":{label:"Upper A (Legacy)",sub:"Chest & Back Power",color:"#999",bc:"b-push-a",exercises:[]},
+  "upper-b":{label:"Upper B (Legacy)",sub:"Shoulders & Arms",color:"#999",bc:"b-pull-a",exercises:[]},
+  "upper-c":{label:"Upper C (Legacy)",sub:"Chest & Back Hypertrophy",color:"#999",bc:"b-push-b",exercises:[]},
   'push-a':{label:'Push A (Legacy)',sub:'Chest Focus',color:'#999',bc:'b-push-a',exercises:[]},
   'push-b':{label:'Push B (Legacy)',sub:'Shoulder Focus',color:'#999',bc:'b-push-b',exercises:[]},
   'pull-a':{label:'Pull A (Legacy)',sub:'Lat Width',color:'#999',bc:'b-pull-a',exercises:[]},
@@ -864,23 +868,26 @@ let PROGRAM=ld(K.p)||DEFAULT_PROGRAM;
 // Migration: if the saved program is from an older version (missing new keys),
 // merge DEFAULT_PROGRAM in so the new workout types render correctly.
 // This preserves any permanent swaps the user made on legacy types while
-// adding the new upper-a/upper-b/upper-c/legs definitions.
-if(!PROGRAM['upper-a']||!PROGRAM['upper-b']||!PROGRAM['upper-c']||!PROGRAM['legs']){
+// adding the new push/pull/legs/upper definitions.
+// FORCE refresh: also overwrite legs since it was redefined for the PPL+U split.
+if(!PROGRAM['push']||!PROGRAM['pull']||!PROGRAM['upper']||!PROGRAM['legs']||!PROGRAM['legs'].exercises||PROGRAM['legs'].sub!=='Full Lower Body'){
   PROGRAM=Object.assign({},DEFAULT_PROGRAM,PROGRAM);
-  // Overwrite the new keys with fresh defaults (don't let stale data block them)
-  ['upper-a','upper-b','upper-c','legs'].forEach(k=>PROGRAM[k]=DEFAULT_PROGRAM[k]);
+  // Overwrite the new active keys with fresh defaults so the new plan shows up
+  ['push','pull','legs','upper'].forEach(k=>PROGRAM[k]=DEFAULT_PROGRAM[k]);
+  // Also force-mark old upper-a/b/c as legacy (in case user had old saved program)
+  ['upper-a','upper-b','upper-c'].forEach(k=>PROGRAM[k]=DEFAULT_PROGRAM[k]);
   sv(K.p,PROGRAM);
 }
 const psv=()=>sv(K.p,PROGRAM);
-// CYCLE: Upper A → Legs → Rest → Upper B → Upper C → Rest → repeat
-// Never more than 2 days in a row. Legs once per week. 4 training days.
-const CYCLE=['upper-a','legs','rest','upper-b','upper-c','rest'];
+// CYCLE: Push → Pull → Rest → Legs → Upper → Rest → Rest → repeat
+// 4 training days, 3 rest days. Every muscle hit 1.5-2x/week.
+const CYCLE=['push','pull','rest','legs','upper','rest','rest'];
 
 const COACH=[
   "At 72kg and 180cm with a fast metabolism, you MUST eat in a surplus. Aim for 2,800–3,200 calories and 140–160g protein daily. The liquid shake alone is 900 cals — drink it every single day.",
   "You work 11am-7pm. Eat a big breakfast before work. Snack dense calories at your desk (nuts, bagels, yoghurt). Train after work. Eat a massive dinner post-workout. That's the rhythm.",
-  "Your biceps get hit 3x/week: direct curls on Upper A, Upper B, and Upper C, plus indirect work from all your rowing. That's optimal frequency for arm growth.",
-  "Face pulls are in every upper body workout. You press 3x/week — without rear delt and rotator cuff work, your shoulders WILL break down. Do them even if they feel boring.",
+  "Your biceps get hit 2x/week: direct curls on Pull and Upper days, plus indirect work from all your rowing. That's optimal frequency for arm growth.",
+  "Face pulls are on every Pull day. You press 2x/week — without rear delt and rotator cuff work, your shoulders WILL break down. Do them even if they feel boring.",
   "Legs once a week means you destroy them when you're there. Leg Press, RDLs, extensions, curls, hip thrusts, calf raises. The full posterior chain in one session. No excuses.",
   "Creatine monohydrate: 5g daily in your shake. Most researched supplement ever. At your weight, you'll saturate in about 4 weeks. Don't skip days.",
   "Sleep is free testosterone and growth hormone. 7–9h every night. You finish work at 7, train at 7:30-8, eat dinner by 9:30, sleep by 11. Protect this routine.",
@@ -1502,8 +1509,7 @@ function renderHome(){
     ?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="badge ${p.bc}">${p.label}</span><span style="font-size:11px;color:var(--text2)">${p.sub}</span></div><div style="font-size:12px;color:var(--text2)">${p.exercises.length} exercises · ~60 min</div>`
     :`<div style="display:flex;align-items:center;gap:8px"><span class="badge b-rest">Rest Day</span><span style="font-size:12px;color:var(--text2)">Recovery — still log it!</span></div>`;
   document.getElementById('coach-note').textContent=COACH[days%COACH.length];
-  const taken=creatineDays.includes(today());
-  document.getElementById('creatine-info').innerHTML=`Today: <strong style="color:${taken?'var(--green)':'var(--text2)'}">${taken?'Taken':'Not logged'}</strong> &nbsp;·&nbsp; Total: <strong style="color:var(--accent)">${creatineDays.length} days</strong>`;
+  renderCreatineCard();
   renderPRs();renderHomeInsights();renderDeloadBanner();renderHeatmap('heatmap-home');checkDraft();
 }
 function renderDeloadBanner(){
@@ -1880,6 +1886,157 @@ function logCreatineDate(){
 }
 
 // ═══════════════════════════════════════════════
+//  CREATINE TRACKER — streak, calendar, reminder
+// ═══════════════════════════════════════════════
+function calcCreatineStreak(){
+  if(!creatineDays.length)return 0;
+  const set=new Set(creatineDays);
+  let n=0;
+  const d=new Date();d.setHours(12,0,0,0);
+  // If today not logged, start counting from yesterday so the streak doesn't drop until end of day
+  if(!set.has(d.toISOString().slice(0,10)))d.setDate(d.getDate()-1);
+  while(set.has(d.toISOString().slice(0,10))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+function calcCreatineLongest(){
+  if(!creatineDays.length)return 0;
+  const sorted=[...new Set(creatineDays)].sort();
+  let best=1,cur=1;
+  for(let i=1;i<sorted.length;i++){
+    const prev=new Date(sorted[i-1]+'T12:00:00');
+    const curd=new Date(sorted[i]+'T12:00:00');
+    if((curd-prev)/86400000===1){cur++;best=Math.max(best,cur)}else{cur=1}
+  }
+  return best;
+}
+function renderCreatineCard(){
+  const t=today();
+  const taken=creatineDays.includes(t);
+  const streak=calcCreatineStreak();
+  const longest=calcCreatineLongest();
+  const total=creatineDays.length;
+  // 30-day adherence
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-29);
+  const cutStr=cutoff.toISOString().slice(0,10);
+  const last30=creatineDays.filter(d=>d>=cutStr).length;
+  const adherence=Math.round(last30/30*100);
+
+  document.getElementById('creatine-info').innerHTML=
+    `Today: <strong style="color:${taken?'var(--green)':'var(--accent)'}">${taken?'Taken ✓':'Not logged yet'}</strong>`;
+
+  document.getElementById('creatine-stats').innerHTML=`
+    <div style="background:var(--card2);padding:10px;border-radius:8px;text-align:center">
+      <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--accent);line-height:1">${streak}</div>
+      <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;font-weight:600">Streak</div>
+    </div>
+    <div style="background:var(--card2);padding:10px;border-radius:8px;text-align:center">
+      <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--text);line-height:1">${longest}</div>
+      <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;font-weight:600">Longest</div>
+    </div>
+    <div style="background:var(--card2);padding:10px;border-radius:8px;text-align:center">
+      <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:${adherence>=80?'var(--green)':adherence>=50?'var(--gold)':'var(--text2)'};line-height:1">${adherence}%</div>
+      <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;font-weight:600">30-day</div>
+    </div>`;
+
+  // Calendar — 5 rows × 7 cols = last 35 days, ending today
+  const set=new Set(creatineDays);
+  const cells=[];
+  for(let i=34;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);d.setHours(12,0,0,0);
+    const key=d.toISOString().slice(0,10);
+    const isToday=key===t;
+    const has=set.has(key);
+    const bg=has?'var(--green)':(isToday?'#fee2e2':'var(--card2)');
+    const col=has?'#fff':(isToday?'var(--accent)':'var(--text3)');
+    const border=isToday?'2px solid var(--accent)':'1px solid var(--border)';
+    cells.push(`<div onclick="toggleCreatineDay('${key}')" title="${key}" style="aspect-ratio:1;background:${bg};border:${border};border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:${col};cursor:pointer;-webkit-tap-highlight-color:transparent">${d.getDate()}</div>`);
+  }
+  document.getElementById('creatine-cal').innerHTML=
+    `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${cells.join('')}</div>
+     <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:6px;font-weight:600">Last 35 days &nbsp;·&nbsp; tap a day to toggle</div>`;
+
+  // Banner if not logged + late in the day
+  const banner=document.getElementById('creatine-banner');
+  const h=new Date().getHours();
+  if(!taken && h>=12){
+    banner.style.display='block';
+    banner.innerHTML=`Don't forget your 5g creatine today — streak: ${streak} day${streak===1?'':'s'}.`;
+  }else{banner.style.display='none'}
+
+  // Reminder time input
+  const rt=localStorage.getItem(K.crt)||'';
+  const input=document.getElementById('creatine-reminder-time');
+  if(input&&!input.value)input.value=rt;
+}
+
+let creatineReminderTimer=null;
+function setCreatineReminderTime(val){
+  if(!val){clearCreatineReminder();return}
+  localStorage.setItem(K.crt,val);
+  scheduleCreatineReminder();
+  if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{
+      if(p==='granted')toast(`Reminder set for ${val} daily`);
+      else toast(`Reminder set (allow notifications for alerts)`);
+    });
+  }else{
+    toast(`Reminder set for ${val} daily`);
+  }
+}
+function clearCreatineReminder(){
+  localStorage.removeItem(K.crt);
+  if(creatineReminderTimer){clearTimeout(creatineReminderTimer);creatineReminderTimer=null;}
+  const input=document.getElementById('creatine-reminder-time');
+  if(input)input.value='';
+  toast('Reminder off');
+}
+function scheduleCreatineReminder(){
+  if(creatineReminderTimer){clearTimeout(creatineReminderTimer);creatineReminderTimer=null;}
+  const val=localStorage.getItem(K.crt);
+  if(!val)return;
+  const [hh,mm]=val.split(':').map(Number);
+  const now=new Date();
+  const next=new Date();
+  next.setHours(hh,mm,0,0);
+  if(next<=now)next.setDate(next.getDate()+1);
+  const ms=next-now;
+  creatineReminderTimer=setTimeout(()=>{
+    if(!creatineDays.includes(today())){fireCreatineReminder();}
+    scheduleCreatineReminder(); // re-schedule for tomorrow
+  },ms);
+}
+function fireCreatineReminder(){
+  const streak=calcCreatineStreak();
+  const msg=streak>0?`Don't break your ${streak}-day streak — take your creatine.`:`Time for your 5g creatine.`;
+  if(navigator.vibrate)navigator.vibrate([200,100,200,100,200]);
+  toast(msg);
+  if('Notification' in window && Notification.permission==='granted'){
+    try{
+      const n=new Notification('Creatine reminder',{
+        body:msg,
+        icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23d63b24"/><text y="46" x="32" text-anchor="middle" font-size="32" fill="white">💊</text></svg>',
+        tag:'nourfit-creatine',
+        requireInteraction:false
+      });
+      setTimeout(()=>n.close(),8000);
+    }catch(e){}
+  }
+}
+function testCreatineReminder(){
+  if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission().then(()=>fireCreatineReminder());
+  }else{
+    fireCreatineReminder();
+  }
+}
+function toggleCreatineDay(d){
+  const i=creatineDays.indexOf(d);
+  if(i>=0){creatineDays.splice(i,1);csv();toast(`Removed ${fmt(d)}`);}
+  else{creatineDays.push(d);csv();toast(`Logged ${fmt(d)}`);}
+  renderHome();
+}
+
+// ═══════════════════════════════════════════════
 //  HISTORY
 // ═══════════════════════════════════════════════
 function renderHistory(){
@@ -2164,7 +2321,20 @@ function toggleMode(){
   applyMode();
 }
 
-window.addEventListener('DOMContentLoaded',()=>{applyMode();renderHome();renderProgram();});
+window.addEventListener('DOMContentLoaded',()=>{
+  applyMode();renderHome();renderProgram();
+  // If reminder time set and we're past it today and creatine not logged → fire now
+  const rt=localStorage.getItem(K.crt);
+  if(rt){
+    const [hh,mm]=rt.split(':').map(Number);
+    const now=new Date();
+    const todayTarget=new Date();todayTarget.setHours(hh,mm,0,0);
+    if(now>=todayTarget && !creatineDays.includes(today())){
+      setTimeout(fireCreatineReminder,1500);
+    }
+    scheduleCreatineReminder();
+  }
+});
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 </script>
 </body>
