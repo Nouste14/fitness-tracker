@@ -269,6 +269,27 @@
     .tweak-opt{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-size:11px;font-weight:700;transition:all .15s;font-family:'DM Sans',sans-serif;text-transform:uppercase}
     .tweak-opt.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
+    /* EQUIPMENT */
+    .eq-gear{background:var(--card3);border:1px solid var(--border);color:var(--text2);border-radius:6px;width:26px;height:24px;font-size:12px;cursor:pointer;flex-shrink:0;line-height:1;padding:0;-webkit-tap-highlight-color:transparent}
+    .eq-gear:active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .true-load{font-size:8.5px;color:var(--text3);font-family:'DM Sans',sans-serif;font-weight:600;line-height:1.2;margin-top:1px;white-space:nowrap}
+    .eq-modal{display:none;position:fixed;inset:0;z-index:650;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center}
+    .eq-box{background:var(--card);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:640px;border-top:1px solid var(--border);max-height:86vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+    .eq-seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
+    .eq-opt{padding:9px 4px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-size:10.5px;font-weight:700;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.3px;transition:all .12s}
+    .eq-opt.act{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .eq-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+    .eq-lbl{font-size:12px;font-weight:700;color:var(--text);font-family:'DM Sans',sans-serif}
+    .eq-sub{font-size:10.5px;color:var(--text2);margin-top:2px;line-height:1.4}
+    .eq-num{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;width:92px;text-align:center;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif}
+    .eq-sw{position:relative;width:46px;height:26px;border-radius:14px;background:var(--card3);border:1px solid var(--border);cursor:pointer;flex-shrink:0;transition:background .15s}
+    .eq-sw.on{background:var(--accent);border-color:var(--accent)}
+    .eq-sw::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+    .eq-sw.on::after{transform:translateX(20px)}
+    .eq-preview{background:var(--card2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:11px 13px;margin-top:14px;font-size:12px;color:var(--text2);line-height:1.6}
+    .eq-list-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--card2);border-radius:8px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer}
+    .eq-list-item:active{border-color:var(--accent)}
+    .eq-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 7px;border-radius:5px;background:var(--card3);color:var(--text2);white-space:nowrap}
     @media(max-width:360px){.sg{grid-template-columns:repeat(2,1fr)}.sv{font-size:20px}}
   </style>
 </head>
@@ -577,13 +598,37 @@
       <div id="standalone-plate-result"></div>
     </div>
     <div class="card">
-      <div class="card-title" style="margin-bottom:10px">Export / Import Data</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5">Export copies all your data as a code. On your other device, paste that code into the Import box to sync between phone and laptop.</p>
-      <button class="btn btn-secondary btn-sm btn-full" style="margin-bottom:10px" onclick="exportData()">Export My Data</button>
-      <div class="ig" style="margin-bottom:8px"><label>Import — Paste code here</label>
-        <textarea id="import-box" rows="3" placeholder="Paste your exported code here..."></textarea>
+      <div class="card-title" style="margin-bottom:10px">Backup &amp; Restore</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.55">
+        Saves everything — sessions, body stats, creatine, program and equipment — into one small file.
+        Move it to your other device and restore. No copy-pasting.
+      </p>
+      <button class="btn btn-primary btn-sm btn-full" style="margin-bottom:8px" onclick="exportData()">Save Backup File</button>
+      <div id="backup-size" style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:12px"></div>
+      <label class="btn btn-secondary btn-sm btn-full" style="display:block;text-align:center;cursor:pointer;margin-bottom:6px">
+        Restore From File
+        <input type="file" id="import-file" accept=".json,.txt,application/json,text/plain" style="display:none" onchange="importFile(this)"/>
+      </label>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:6px">Got an old backup code?</div>
+        <p style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">Older versions gave you a long text code. Paste it here — it still works.</p>
+        <div class="ig" style="margin-bottom:8px">
+          <textarea id="import-box" rows="2" placeholder="Paste an old export code..."></textarea>
+        </div>
+        <button class="btn btn-secondary btn-sm btn-full" onclick="importData()">Restore From Code</button>
       </div>
-      <button class="btn btn-primary btn-sm btn-full" onclick="importData()">Import &amp; Merge Data</button>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:8px">Equipment Setup</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.55">
+        Tell the app exactly how each machine is loaded — plate vs cable vs pin, its starting
+        resistance, and whether you log per side. This is what makes <strong style="color:var(--text)">%1RM and volume
+        accurate</strong>. A <span style="color:var(--accent)">●</span> means you've customised it.
+      </p>
+      <div class="ig" style="margin-bottom:10px">
+        <input type="text" id="eq-search" placeholder="Search exercises..." style="text-transform:none" oninput="renderEquipSetup()"/>
+      </div>
+      <div id="eq-setup-list"></div>
     </div>
     <div class="card">
       <div class="card-title">Add Custom Exercise</div>
@@ -670,6 +715,30 @@
   </div>
 </div>
 
+<!-- EQUIPMENT MODAL -->
+<div class="eq-modal" id="eq-modal" onclick="if(event.target===this)closeEquip()">
+  <div class="eq-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div>
+        <div class="swap-title" id="eq-title">Equipment</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">How this machine is loaded — drives your 1RM &amp; volume</div>
+      </div>
+      <button onclick="closeEquip()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;line-height:1;padding:0 2px">×</button>
+    </div>
+    <div style="margin-top:16px">
+      <div class="tweak-label" style="margin-bottom:7px">Equipment type</div>
+      <div class="eq-seg" id="eq-types"></div>
+      <div class="eq-sub" id="eq-typehint" style="margin-bottom:4px"></div>
+    </div>
+    <div id="eq-dynamic"></div>
+    <div class="eq-preview" id="eq-preview"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-primary" onclick="saveEquip()" style="flex:1">Save</button>
+      <button class="btn btn-secondary" onclick="resetEquip()" style="flex:0 0 auto">Reset</button>
+    </div>
+  </div>
+</div>
+
 <div id="tweaks-panel">
   <h3>Tweaks</h3>
   <div class="tweak-row">
@@ -712,21 +781,9 @@ function applyTweaks(){
   r.setProperty('--accent', tweaks.accent);
   r.setProperty('--push', tweaks.accent);
   r.setProperty('--red', tweaks.accent);
-  if(tweaks.mode === 'dark'){
-    r.setProperty('--bg','#0b0b0f');r.setProperty('--card','#14141a');
-    r.setProperty('--card2','#1b1b24');r.setProperty('--card3','#22222e');
-    r.setProperty('--text','#f0f0f0');r.setProperty('--text2','#7a7a8e');
-    r.setProperty('--text3','#44445a');r.setProperty('--border','#24243a');
-    document.querySelector('.hdr').style.background='rgba(11,11,15,.97)';
-    document.querySelector('.nav').style.background='rgba(20,20,26,.97)';
-  } else {
-    r.setProperty('--bg','#f4f3ee');r.setProperty('--card','#ffffff');
-    r.setProperty('--card2','#eeece6');r.setProperty('--card3','#e4e2db');
-    r.setProperty('--text','#111111');r.setProperty('--text2','#666666');
-    r.setProperty('--text3','#aaaaaa');r.setProperty('--border','#e0dfd8');
-    document.querySelector('.hdr').style.background='rgba(244,243,238,.97)';
-    document.querySelector('.nav').style.background='rgba(255,255,255,.97)';
-  }
+  // Theme is owned by applyMode() / the header toggle — the tweaks panel only
+  // drives accent + density. Two systems writing the same CSS vars was making
+  // the theme flip back unpredictably.
   if(tweaks.density === 'compact'){
     r.setProperty('--card-pad','10px');
     document.querySelectorAll('.card').forEach(c=>c.style.padding='10px');
@@ -743,6 +800,9 @@ function setAccent(val, hover, btn){
 }
 function setMode(val, btn){
   tweaks.mode = val;
+  darkMode = (val === 'dark');
+  localStorage.setItem('nf_darkmode', darkMode);
+  applyMode();
   btn.closest('.tweak-opts').querySelectorAll('.tweak-opt').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   applyTweaks();
@@ -766,7 +826,8 @@ window.parent.postMessage({type:'__edit_mode_available'}, '*');
 //  DATA
 // ═══════════════════════════════════════════════
 const START='2026-03-22';
-const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft',p:'nf3_program',ce:'nf3_custom',crt:'nf3_creatineReminderTime'};
+const MAX_SESSION_MIN=180; // anything longer = clock was left running
+const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft',p:'nf3_program',ce:'nf3_custom',crt:'nf3_creatineReminderTime',eq:'nf3_equipment'};
 const ld=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 let sessions=ld(K.s)||[], bodyStats=ld(K.b)||[], creatineDays=ld(K.c)||[];
@@ -781,8 +842,10 @@ const MM={
   'Push-ups':'Chest','Cable Crossover':'Chest','Machine Chest Press':'Chest','Pec Deck':'Chest','Smith Machine Bench Press':'Chest','Dumbbell Pullover':'Chest','Incline Bench Press (Smith Machine)':'Chest',
   'DB Shoulder Press':'Shoulders','Lateral Raises (DB)':'Shoulders','Cable Lateral Raises':'Shoulders','Arnold Press':'Shoulders','Seated DB Shoulder Press':'Shoulders','Face Pulls':'Shoulders','Rear Delt Fly (Cable)':'Shoulders',
   'Upright Row':'Shoulders','Machine Shoulder Press':'Shoulders','Machine Lateral Raise':'Shoulders','Dumbbell Front Raise':'Shoulders','Rear Delt Machine':'Shoulders','Cable Face Pull':'Shoulders','Lateral Raise (Cable) - One Hand':'Shoulders',
+  'One Arm Cable Extension':'Triceps','Shoulder Press (Plates Machine)':'Shoulders',
   'Tricep Pushdown':'Triceps','Overhead Tricep Extension':'Triceps','Tricep Dips (Weighted)':'Triceps',
   'Skull Crushers':'Triceps','Machine Tricep Extension':'Triceps','Tricep Kickback':'Triceps','Cable Overhead Tricep Extension':'Triceps',
+  'Lat Pulldown Plate Machine':'Back','Leg Press (Cable)':'Quads','Leg Press (Plate)':'Quads',
   'Lat Pulldown (Wide)':'Back','Barbell Row':'Back','Single Arm DB Row':'Back','Seated Cable Row (Close Grip)':'Back','Chest-Supported Row':'Back','Lat Pulldown (Neutral Grip)':'Back',
   'Pull-ups':'Back','Chin-ups':'Back','T-Bar Row':'Back','Machine Row':'Back','Cable Pullover':'Back','Meadows Row':'Back','Pendlay Row':'Back',
   'Barbell Curl':'Biceps','Hammer Curl':'Biceps','Incline DB Curl':'Biceps','Cable Curl (Rope)':'Biceps',
@@ -803,6 +866,101 @@ const WEEKLY_SET_TARGETS={
   'Biceps':{min:8,max:12},'Triceps':{min:8,max:12},
   'Quads':{min:8,max:12},'Hamstrings':{min:6,max:10},'Glutes':{min:4,max:8},'Calves':{min:6,max:10}
 };
+
+// ═══════════════════════════════════════════════
+//  EQUIPMENT ENGINE
+//  One exercise name -> one precise equipment profile.
+//  This is what makes %1RM and volume tell the truth.
+//    type    barbell|dumbbell|cable|plate|pin|smith|bodyweight
+//    start   base resistance in kg with ZERO plates loaded
+//    perSide logged weight = plates on ONE side only
+//    uni     one limb at a time
+//    attach  cable attachment (rope / straight bar / V-handle)
+// ═══════════════════════════════════════════════
+const EQ_TYPES={
+  barbell:   {label:'Barbell',        hint:'Total weight <strong>including the bar</strong>'},
+  dumbbell:  {label:'Dumbbell',       hint:'Weight <strong>per dumbbell</strong>'},
+  cable:     {label:'Cable stack',    hint:'Weight shown on the <strong>stack</strong>'},
+  plate:     {label:'Plate-loaded',   hint:'Plates you load on — base resistance added automatically'},
+  pin:       {label:'Pin / selector', hint:'Weight shown on the <strong>stack</strong>'},
+  smith:     {label:'Smith machine',  hint:'Plates loaded — bar weight added automatically'},
+  bodyweight:{label:'Bodyweight',     hint:'Added load only — 0 means just you'}
+};
+const ATTACHMENTS=['','Straight bar','Rope','V-handle','Wide bar','D-handle','EZ bar','Ankle strap'];
+
+// Measured in Nour's gym (from session notes). All editable in
+// Program -> Equipment Setup.
+const EQUIP_DEFAULTS={
+  'Machine Shoulder Press':          {type:'plate', start:5.4,  perSide:true},
+  'Shoulder Press (Plates Machine)': {type:'plate', start:5.4,  perSide:true},
+  'Machine Row':                     {type:'plate', start:11.3, perSide:true},
+  'Smith Machine Squat':             {type:'plate', start:30.4, perSide:true},
+  'Machine Chest Press':             {type:'plate', start:0,    perSide:true},
+  'Lat Pulldown Plate Machine':      {type:'plate', start:0,    perSide:false, uni:true},
+  'Leg Press (Plate)':               {type:'plate', start:0,    perSide:true},
+  'Leg Press (Cable)':               {type:'pin',   start:0},
+  'Leg Press':                       {type:'pin',   start:0},
+  'Seated Leg Curl':                 {type:'pin',   start:0},
+  'Lying Leg Curl':                  {type:'pin',   start:0},
+  'Rear Delt Machine':               {type:'pin',   start:0},
+  'Pec Deck':                        {type:'pin',   start:0},
+  'Close Grip Bench Press':          {type:'smith', start:0},
+  'Incline Bench Press (Smith Machine)':{type:'smith',start:0},
+  'Smith Machine Bench Press':       {type:'smith', start:0},
+  'Tricep Pushdown':                 {type:'cable', start:0, attach:'Straight bar'},
+  'Overhead Tricep Extension':       {type:'cable', start:0, attach:'Rope'},
+  'Face Pulls':                      {type:'cable', start:0, attach:'Rope'},
+  'Lateral Raise (Cable) - One Hand':{type:'cable', start:0, attach:'D-handle', uni:true},
+  'One Arm Cable Extension':         {type:'cable', start:0, attach:'D-handle', uni:true},
+  'Seated Cable Row (Close Grip)':   {type:'cable', start:0, attach:'V-handle'},
+  'Lat Pulldown (Wide)':             {type:'cable', start:0, attach:'Wide bar'},
+  'EZ Bar Curl':                     {type:'barbell',start:10},
+};
+let equipCfg = ld(K.eq) || {};
+const eqsv = ()=>sv(K.eq,equipCfg);
+
+function normEquip(c){
+  return {type:c.type||'cable',start:+c.start||0,perSide:!!c.perSide,uni:!!c.uni,attach:c.attach||''};
+}
+function legacyToType(eq,name){
+  if(eq!=='machine')return eq;
+  if(/smith/i.test(name||''))return 'smith';
+  if(/plate/i.test(name||''))return 'plate';
+  return 'pin';
+}
+function getEquip(name){
+  if(!name)return normEquip({});
+  if(equipCfg[name])return normEquip(equipCfg[name]);
+  if(EQUIP_DEFAULTS[name])return normEquip(EQUIP_DEFAULTS[name]);
+  for(const t of Object.keys(PROGRAM||{})){
+    const e=((PROGRAM[t]||{}).exercises||[]).find(x=>x.name===name);
+    if(e&&e.eq)return normEquip({type:legacyToType(e.eq,name)});
+  }
+  return normEquip({type:legacyToType(getEqForName(name)||'cable',name)});
+}
+// STRENGTH load (e1RM, %1RM, plateau). Dumbbells stay per-dumbbell —
+// that is how lifters compare DB lifts to each other.
+function strengthLoad(name,logged){
+  const c=getEquip(name), w=+logged||0;
+  if(c.type==='bodyweight')return (getLatestBW()||0)+w;
+  if(!w)return 0;
+  if(c.type==='plate')return c.start+(c.perSide?w*2:w);
+  return c.start+w;
+}
+// VOLUME load (total kg moved). Bilateral dumbbells count twice.
+function volumeLoad(name,logged){
+  const c=getEquip(name), w=+logged||0;
+  if(c.type==='dumbbell')return c.uni?w:w*2;
+  return strengthLoad(name,logged);
+}
+// Shown beside the entry so you always see real load moved.
+function loadLabel(name,logged){
+  const c=getEquip(name), w=+logged||0;
+  if(!w)return '';
+  const t=strengthLoad(name,logged);
+  if(t&&t!==w&&(c.type==='plate'||c.type==='smith'||c.type==='bodyweight'))return t+'kg total';
+  return '';
+}
 
 // ═══════════════════════════════════════════════
 //  PROGRAM — 4 DAY PPL+U SPLIT (June 2026 rewrite)
@@ -905,15 +1063,21 @@ const today=()=>new Date().toISOString().slice(0,10);
 const daysSince=d=>Math.floor((new Date().setHours(0,0,0,0)-new Date(d).setHours(0,0,0,0))/864e5);
 const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
 const fmtLong=d=>new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-const est1RM=(w,r)=>(!w||r<1)?0:Math.round(w*(36/(37-r))*10)/10;
+// Brzycki (old formula) is only valid to ~10 reps — a 16-rep set scored 1.7x
+// too high. Epley is far more stable, and we cap at 15 reps because any 1RM
+// estimate from a 20+ rep set is guesswork.
+const E1RM_REP_CAP=15;
+const est1RM=(w,r)=>{
+  if(!w||r<1)return 0;
+  if(r===1)return Math.round(w*10)/10;
+  const rr=Math.min(r,E1RM_REP_CAP);
+  return Math.round(w*(1+rr/30)*10)/10;
+};
 const calcVol=s=>{
-  const bw=getLatestBW()||0;
   let v=0;
   (s.exercises||[]).forEach(ex=>{
-    const exEq=(()=>{for(const t of Object.keys(PROGRAM)){const e=(PROGRAM[t].exercises||[]).find(e=>e.name===ex.name);if(e)return e.eq;}return getEqForName(ex.name)||'';})();
     (ex.sets||[]).filter(st=>st.done&&!st.warmup).forEach(st=>{
-      const ew=exEq==='bodyweight'?bw+(+st.weight||0):(+st.weight||0);
-      v+=ew*(+st.reps||0);
+      v+=volumeLoad(ex.name,st.weight)*(+st.reps||0);
     });
   });
   return Math.round(v);
@@ -925,9 +1089,18 @@ function calcStreak(){
   return st;
 }
 function getNextType(){
-  const real=sessions.filter(s=>CYCLE.includes(s.type));
+  // Only consider sessions whose type is part of the CURRENT cycle, so old
+  // push-a / upper-c entries can't knock the rotation back to the start.
+  const real=sessions.filter(s=>CYCLE.includes(s.type)&&s.type!=='rest');
   if(!real.length)return CYCLE[0];
-  return CYCLE[(CYCLE.indexOf(real[real.length-1].type)+1)%CYCLE.length];
+  const last=real[real.length-1].type;
+  const idx=CYCLE.indexOf(last);
+  if(idx<0)return CYCLE[0];
+  for(let i=1;i<=CYCLE.length;i++){
+    const t=CYCLE[(idx+i)%CYCLE.length];
+    if(t!=='rest')return t;
+  }
+  return CYCLE[0];
 }
 function getAllExNames(){const s=new Set();sessions.forEach(ss=>(ss.exercises||[]).forEach(e=>s.add(e.name)));return[...s]}
 function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500)}
@@ -1187,7 +1360,9 @@ function detectPlateau(exName){
     if(rpeOldest-rpeNewest>=0.7)return null;
   }
   const suggestions=['Try a different rep range (e.g. drop to 5s if you\'ve been doing 8s)','Add a deload week — reduce weight by 15% for one session, then come back fresh','Add a back-off set at 60% load for high reps after your working sets','Check sleep and protein — those two fix most plateau without changing the program'];
-  return{sessions:last3.length,e1rm:Math.round(maxE),tip:suggestions[Math.floor(Math.random()*suggestions.length)]};
+  // Stable pick — a tip that changes on every re-render looks broken.
+  let h=0;for(let i=0;i<exName.length;i++)h=(h*31+exName.charCodeAt(i))>>>0;
+  return{sessions:last3.length,e1rm:Math.round(maxE),tip:suggestions[h%suggestions.length]};
 }
 
 // ═══════════════════════════════════════════════
@@ -1231,9 +1406,8 @@ function effectiveWeight(weight, exEq){
 }
 function getBestE1RM(exName){
   let best=0;
-  const exEq=(()=>{for(const t of Object.keys(PROGRAM)){const ex=(PROGRAM[t].exercises||[]).find(e=>e.name===exName);if(ex)return ex.eq;}return getEqForName(exName)||'';})();
   sessions.forEach(s=>{const ex=(s.exercises||[]).find(e=>e.name===exName);if(ex)(ex.sets||[]).filter(st=>st.done&&!st.warmup&&+st.reps).forEach(st=>{
-    const ew=effectiveWeight(st.weight,exEq);
+    const ew=strengthLoad(exName,st.weight);
     if(!ew)return;
     const e=est1RM(ew,+st.reps);if(e>best)best=e;
   })});
@@ -1309,6 +1483,123 @@ function renderCustomExercises(){
     </div>`).join('');
 }
 
+// ═══════════════════════════════════════════════
+//  EQUIPMENT EDITOR
+// ═══════════════════════════════════════════════
+let eqEditName=null, eqDraft=null;
+function openEquip(name){
+  eqEditName=name;
+  eqDraft=getEquip(name);
+  document.getElementById('eq-title').textContent=name;
+  document.getElementById('eq-modal').style.display='flex';
+  renderEquipModal();
+}
+function closeEquip(){document.getElementById('eq-modal').style.display='none';eqEditName=null;eqDraft=null;}
+function setEqType(t){eqDraft.type=t;renderEquipModal();}
+function setEqField(k,v){eqDraft[k]=v;renderEquipModal();}
+function toggleEqField(k){eqDraft[k]=!eqDraft[k];renderEquipModal();}
+function renderEquipModal(){
+  const c=eqDraft, keys=Object.keys(EQ_TYPES);
+  document.getElementById('eq-types').innerHTML=keys.map(k=>
+    `<button class="eq-opt ${c.type===k?'act':''}" onclick="setEqType('${k}')">${EQ_TYPES[k].label}</button>`).join('');
+  document.getElementById('eq-typehint').innerHTML=EQ_TYPES[c.type].hint;
+  let h='';
+  const needsStart=['plate','smith','barbell'].includes(c.type);
+  if(needsStart){
+    const lbl=c.type==='plate'?'Starting resistance':'Bar weight';
+    const sub=c.type==='smith'?'What the empty Smith bar weighs. Counterbalanced bars can be 0.'
+      :c.type==='barbell'?'Olympic 20kg · EZ 10kg. Used by the plate calculator.'
+      :'What the machine weighs with NO plates on. Your notes: shoulder press 5.4kg, machine row 11.3kg, perfect squat 30.4kg.';
+    h+=`<div class="eq-row"><div style="flex:1"><div class="eq-lbl">${lbl}</div><div class="eq-sub">${sub}</div></div>
+      <input class="eq-num" type="number" step="0.1" min="0" value="${c.start||''}" placeholder="0"
+        oninput="eqDraft.start=parseFloat(this.value)||0;updateEqPreview()"/></div>`;
+  }
+  if(c.type==='plate'){
+    h+=`<div class="eq-row"><div style="flex:1"><div class="eq-lbl">I log plates per side</div>
+      <div class="eq-sub">ON = you type the weight on ONE side and the app doubles it. OFF = you type the combined total.</div></div>
+      <div class="eq-sw ${c.perSide?'on':''}" onclick="toggleEqField('perSide')"></div></div>`;
+  }
+  if(['cable','pin'].includes(c.type)){
+    h+=`<div class="eq-row"><div style="flex:1"><div class="eq-lbl">Attachment</div>
+      <div class="eq-sub">Rope vs straight bar changes the lift — recorded with the exercise.</div></div>
+      <select style="width:130px" onchange="setEqField('attach',this.value)">
+      ${ATTACHMENTS.map(a=>`<option value="${a}" ${c.attach===a?'selected':''}>${a||'— none —'}</option>`).join('')}
+      </select></div>`;
+  }
+  h+=`<div class="eq-row"><div style="flex:1"><div class="eq-lbl">One limb at a time</div>
+    <div class="eq-sub">Single-arm or single-leg. Reps you log are per limb.</div></div>
+    <div class="eq-sw ${c.uni?'on':''}" onclick="toggleEqField('uni')"></div></div>`;
+  document.getElementById('eq-dynamic').innerHTML=h;
+  updateEqPreview();
+}
+function updateEqPreview(){
+  const c=eqDraft, el=document.getElementById('eq-preview');
+  if(!el||!eqEditName)return;
+  const sample=c.type==='plate'&&c.perSide?20:c.type==='bodyweight'?0:40;
+  const saved=equipCfg[eqEditName];
+  equipCfg[eqEditName]=c;
+  const s=strengthLoad(eqEditName,sample), v=volumeLoad(eqEditName,sample);
+  if(saved)equipCfg[eqEditName]=saved; else delete equipCfg[eqEditName];
+  let txt=`If you log <strong style="color:var(--text)">${sample}kg</strong>, the app counts <strong style="color:var(--accent)">${s}kg</strong> for strength`;
+  if(v!==s)txt+=` and <strong style="color:var(--accent)">${v}kg</strong> for volume`;
+  txt+='.';
+  if(c.type==='plate'&&c.perSide)txt+=`<br><span style="font-size:11px">${sample} per side ×2 = ${sample*2}${c.start?` + ${c.start} base`:''} = ${s}kg</span>`;
+  if(c.type==='dumbbell')txt+=`<br><span style="font-size:11px">Strength uses per-dumbbell (how lifters compare DB lifts); volume counts both.</span>`;
+  el.innerHTML=txt;
+}
+function saveEquip(){
+  if(!eqEditName)return;
+  equipCfg[eqEditName]=normEquip(eqDraft);
+  eqsv();
+  const nm=eqEditName;
+  closeEquip();
+  if(activeType&&document.getElementById('wo-exercises')){
+    const p=PROGRAM[activeType];
+    (p&&p.exercises||[]).forEach((ex,i)=>{
+      const dn=currentSwaps[i]||ex.name;
+      if(dn===nm){
+        renderEquipPanel(i,dn);
+        const tb=document.getElementById('sb-'+i);
+        if(tb)[...tb.querySelectorAll('tr')].forEach((_,si)=>onWeightChange(i,si,true));
+      }
+    });
+  }
+  if(document.getElementById('eq-setup-list'))renderEquipSetup();
+  toast('Equipment saved for '+nm);
+}
+function resetEquip(){
+  if(!eqEditName)return;
+  delete equipCfg[eqEditName];
+  eqsv();
+  eqDraft=getEquip(eqEditName);
+  renderEquipModal();
+  toast('Reset to default');
+}
+function renderEquipSetup(){
+  const el=document.getElementById('eq-setup-list');if(!el)return;
+  const names=new Set();
+  Object.keys(PROGRAM).forEach(t=>((PROGRAM[t]||{}).exercises||[]).forEach(e=>names.add(e.name)));
+  sessions.forEach(s=>(s.exercises||[]).forEach(e=>{if((e.sets||[]).some(st=>st.done))names.add(e.name)}));
+  const q=(document.getElementById('eq-search')?document.getElementById('eq-search').value:'').toLowerCase();
+  const list=[...names].filter(n=>!q||n.toLowerCase().includes(q)).sort();
+  if(!list.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0">No exercises found.</div>';return}
+  el.innerHTML=list.map(n=>{
+    const c=getEquip(n), custom=!!equipCfg[n];
+    let bits=EQ_TYPES[c.type].label;
+    if(c.start)bits+=` · ${c.start}kg base`;
+    if(c.type==='plate')bits+=c.perSide?' · per side':' · total';
+    if(c.attach)bits+=` · ${c.attach}`;
+    if(c.uni)bits+=' · 1 limb';
+    return `<div class="eq-list-item" onclick="openEquip('${escAttr(n)}')">
+      <div style="min-width:0;flex:1">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text);font-family:'DM Sans',sans-serif">${n}${custom?' <span style="color:var(--accent);font-size:10px">●</span>':''}</div>
+        <div style="font-size:10.5px;color:var(--text2);margin-top:2px">${bits}</div>
+      </div>
+      <span class="eq-badge">Edit</span>
+    </div>`;
+  }).join('');
+}
+
 let swapEI=null;
 let currentSwaps={};
 function openSwap(ei){
@@ -1359,29 +1650,7 @@ function confirmSwap(btn){
     const tipEl=exCardForTip.querySelector('.ex-tip');
     if(tipEl)tipEl.textContent=newNote;
   }
-  const newEq=(PROGRAM[activeType]&&PROGRAM[activeType].exercises&&PROGRAM[activeType].exercises[swapEI]&&PROGRAM[activeType].exercises[swapEI].eq)||getEqForName(newName)||'machine';
-  const pcDiv=document.getElementById('pc-'+swapEI);
-  if(pcDiv){
-    if(newEq==='barbell'){
-      pcDiv.className='plate-calc';
-      barWeights[swapEI]=barWeights[swapEI]||BAR_WEIGHT;
-      pcDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div class="plate-calc-title" style="margin-bottom:0">Plates per side</div>
-        <div style="display:flex;gap:4px">
-          <button class="bar-sel ${barWeights[swapEI]===20?'act':''}" onclick="setBar(${swapEI},20,this)">20kg</button>
-          <button class="bar-sel ${barWeights[swapEI]===10?'act':''}" onclick="setBar(${swapEI},10,this)">10kg EZ</button>
-        </div>
-      </div><div class="plate-result" id="pr-${swapEI}"></div>`;
-      pcDiv.style.display='';
-    } else if(newEq==='dumbbell'){
-      pcDiv.className='';
-      pcDiv.style.cssText='margin-top:8px;font-size:11px;color:var(--text2);padding:6px 10px;background:var(--card2);border-radius:8px;border:1px solid var(--border)';
-      pcDiv.innerHTML='Weight shown is <strong style="color:var(--text)">per dumbbell</strong>';
-      pcDiv.style.display='';
-    } else {
-      pcDiv.style.display='none';
-    }
-  }
+  renderEquipPanel(swapEI,newName);
   const exCard=document.getElementById('ex-'+swapEI);
   if(exCard){
     exCard.querySelectorAll('.ex-suggest,.ex-last').forEach(el=>el.remove());
@@ -1412,7 +1681,7 @@ function confirmSwap(btn){
           if(rEl&&!rEl.value)rEl.value=st.reps||'';
           onWeightChange(swapEI,si);
         }
-        if(newEq==='barbell'){
+        if(getEquip(newName).type==='barbell'){
           const prEl=document.getElementById('pr-'+swapEI);
           if(prEl&&best.weight)renderPlates(+best.weight,prEl,barWeights[swapEI]||BAR_WEIGHT);
         }
@@ -1441,7 +1710,7 @@ function renderHeatmap(containerId){
     const mg=MM[ex.name];if(!mg)return;
     const working=(ex.sets||[]).filter(st=>st.done&&!st.warmup);
     mSets[mg]=(mSets[mg]||0)+working.length;
-    mVol[mg]=(mVol[mg]||0)+working.reduce((a,st)=>a+(+st.weight||0)*(+st.reps||0),0);
+    mVol[mg]=(mVol[mg]||0)+working.reduce((a,st)=>a+volumeLoad(ex.name,st.weight)*(+st.reps||0),0);
   }));
   const ORDER=['Chest','Shoulders','Back','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves'];
   const tiles=ORDER.map(mg=>{
@@ -1551,7 +1820,7 @@ function logDeloadWeek(){
 function renderPRs(){
   const prs={};
   sessions.forEach(s=>(s.exercises||[]).forEach(ex=>{
-    const best=Math.max(0,...(ex.sets||[]).filter(st=>st.done&&+st.weight).map(st=>+st.weight));
+    const best=Math.max(0,...(ex.sets||[]).filter(st=>st.done&&!st.warmup&&+st.weight).map(st=>+st.weight));
     if(best>0&&(!prs[ex.name]||best>prs[ex.name]))prs[ex.name]=best;
   }));
   const keys=Object.keys(prs);
@@ -1661,40 +1930,57 @@ function buildExercises(p){
       <div class="ex-tip">${ex.note}</div>${plateauHTML}${sugHTML}${lastHTML}
       <table class="sets-table"><thead><tr><th>#</th><th>Reps</th><th>Kg</th><th>RPE</th><th style="font-size:9px">%1RM</th><th>Done</th></tr></thead><tbody id="sb-${i}"></tbody></table>
       <button class="add-set-btn" onclick="addSet(${i})">+ Add Set</button>`;
-    if(ex.eq==='barbell'){
-      const pcDiv=document.createElement('div');pcDiv.className='plate-calc';pcDiv.id='pc-'+i;
-      pcDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div class="plate-calc-title" style="margin-bottom:0">Plates per side</div>
-        <div style="display:flex;gap:4px">
-          <button class="bar-sel act" onclick="setBar(${i},20,this)">20kg bar</button>
-          <button class="bar-sel" onclick="setBar(${i},10,this)">10kg EZ</button>
-        </div>
-      </div><div class="plate-result" id="pr-${i}"></div>`;
-      div.appendChild(pcDiv);
-    } else if(ex.eq==='dumbbell'){
-      const dbDiv=document.createElement('div');dbDiv.id='pc-'+i;
-      dbDiv.style.cssText='margin-top:8px;font-size:11px;color:var(--text2);padding:6px 10px;background:var(--card2);border-radius:8px;border:1px solid var(--border)';
-      dbDiv.innerHTML='Weight shown is <strong style="color:var(--text)">per dumbbell</strong>';
-      div.appendChild(dbDiv);
-    } else if(ex.eq==='bodyweight'){
-      const bwDiv=document.createElement('div');bwDiv.id='pc-'+i;
-      bwDiv.style.cssText='margin-top:8px;font-size:11px;color:var(--text2);padding:6px 10px;background:var(--card2);border-radius:8px;border:1px solid var(--border)';
-      const bw=getLatestBW();
-      bwDiv.innerHTML=bw
-        ?`Bodyweight: <strong style="color:var(--text)">${bw}kg</strong> · Enter added load or leave 0`
-        :'Bodyweight exercise · Log your weight in Body Stats to track volume. Enter added load if any.';
-      div.appendChild(bwDiv);
-    }
+    const pcDiv=document.createElement('div');pcDiv.id='pc-'+i;
+    div.appendChild(pcDiv);
     c.appendChild(div);
+    renderEquipPanel(i,displayName);
     const tbody=document.getElementById('sb-'+i);
-    for(let s=0;s<defSets;s++)appendSetRow(tbody,i,s,prefills[s]||{},ex.name);
-    if(ex.eq==='barbell'){
+    for(let s=0;s<defSets;s++)appendSetRow(tbody,i,s,prefills[s]||{},displayName);
+    if(getEquip(displayName).type==='barbell'){
       const bw=barWeights[i]||BAR_WEIGHT;
       if(sug&&sug.w)renderPlates(sug.w,document.getElementById('pr-'+i),bw);
       else if(prefills[0]?.weight)renderPlates(prefills[0].weight,document.getElementById('pr-'+i),bw);
     }
+    for(let s=0;s<defSets;s++)onWeightChange(i,s,true);
   });
 }
+
+// ═══════════════════════════════════════════════
+//  EQUIPMENT PANEL (per exercise, inside the logger)
+// ═══════════════════════════════════════════════
+function renderEquipPanel(ei,name){
+  const host=document.getElementById('pc-'+ei);
+  if(!host)return;
+  const c=getEquip(name);
+  const t=EQ_TYPES[c.type]||EQ_TYPES.cable;
+  let extra='';
+  if(c.type==='plate'&&c.start)extra+=` · base <strong style="color:var(--text)">${c.start}kg</strong>`;
+  if(c.type==='plate')extra+=c.perSide?' · logged <strong style="color:var(--text)">per side</strong>':' · logged <strong style="color:var(--text)">total</strong>';
+  if(c.type==='smith'&&c.start)extra+=` · bar <strong style="color:var(--text)">${c.start}kg</strong>`;
+  if(c.attach)extra+=` · <strong style="color:var(--text)">${c.attach}</strong>`;
+  if(c.uni)extra+=' · <strong style="color:var(--text)">one side at a time</strong>';
+  if(c.type==='bodyweight'){const bw=getLatestBW();if(bw)extra+=` · you weigh <strong style="color:var(--text)">${bw}kg</strong>`;}
+
+  if(c.type==='barbell'){
+    host.className='plate-calc';
+    host.style.cssText='';
+    barWeights[ei]=barWeights[ei]||(c.start||BAR_WEIGHT);
+    host.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div class="plate-calc-title" style="margin-bottom:0">Plates per side</div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <button class="bar-sel ${barWeights[ei]==20?'act':''}" onclick="setBar(${ei},20,this)">20kg</button>
+          <button class="bar-sel ${barWeights[ei]==10?'act':''}" onclick="setBar(${ei},10,this)">10kg EZ</button>
+          <button class="eq-gear" onclick="openEquip('${escAttr(name)}')" title="Equipment settings">⚙</button>
+        </div>
+      </div><div class="plate-result" id="pr-${ei}"></div>`;
+  } else {
+    host.className='';
+    host.style.cssText='margin-top:8px;font-size:11px;color:var(--text2);padding:7px 10px;background:var(--card2);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px';
+    host.innerHTML=`<div style="flex:1"><strong style="color:var(--text)">${t.label}</strong> — ${t.hint}${extra}</div>
+      <button class="eq-gear" onclick="openEquip('${escAttr(name)}')" title="Equipment settings">⚙</button>`;
+  }
+}
+function escAttr(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 
 function appendSetRow(tbody,ei,si,pre,exName){
   const tr=document.createElement('tr');
@@ -1719,7 +2005,10 @@ function appendSetRow(tbody,ei,si,pre,exName){
       <button class="stpb" onclick="adj('w',${ei},${si},1)">+</button>
     </div></td>
     <td><div class="rpe-grid" id="rpe-wrap-${ei}-${si}">${rpeBtns}<input type="hidden" id="rpe-${ei}-${si}" value="${pre.rpe||''}"/></div></td>
-    <td id="e1-${ei}-${si}" style="font-size:10px;color:var(--text2);min-width:28px;text-align:center;font-family:'Oswald',sans-serif">—</td>
+    <td style="min-width:34px;text-align:center">
+      <div id="e1-${ei}-${si}" style="font-size:10px;color:var(--text2);font-family:'Oswald',sans-serif">—</div>
+      <div id="tl-${ei}-${si}" class="true-load"></div>
+    </td>
     <td><button class="ck" id="ck-${ei}-${si}" onclick="onSetDone(${ei},${si},'${exName||''}',${ei})">✓</button></td>`;
   tbody.appendChild(tr);
 }
@@ -1733,46 +2022,44 @@ function toggleWarmup(ei,si){
 }
 function addSet(ei){
   const tbody=document.getElementById('sb-'+ei);
-  const p=PROGRAM[activeType];const exName=p?p.exercises[ei]?.name||'':'';
+  const p=PROGRAM[activeType];
+  const exName=currentSwaps[ei]||(p?p.exercises[ei]?.name||'':'');
   appendSetRow(tbody,ei,tbody.querySelectorAll('tr').length,{},exName);
 }
-function onWeightChange(ei,si){
+function onWeightChange(ei,si,silent){
   const p=PROGRAM[activeType];
   const originalEx=p?.exercises[ei];
   const displayName=currentSwaps[ei]||originalEx?.name||'';
-  let ex=originalEx;
-  if(currentSwaps[ei]){
-    for(const t of Object.keys(PROGRAM)){
-      const found=(PROGRAM[t].exercises||[]).find(e=>e.name===displayName);
-      if(found){ex=found;break;}
-    }
-    if(ex===originalEx){const deq=getEqForName(displayName);if(deq)ex={...originalEx,name:displayName,eq:deq};}
-  }
+  const cfg=getEquip(displayName);
   const wVal=document.getElementById('w-'+ei+'-'+si)?.value;
-  if(ex?.eq==='barbell'){
+  if(cfg.type==='barbell'){
     const pr=document.getElementById('pr-'+ei);
-    if(pr&&wVal)renderPlates(wVal,pr,barWeights[ei]);
+    if(pr&&wVal)renderPlates(wVal,pr,barWeights[ei]||cfg.start||BAR_WEIGHT);
   }
   const rawW=parseFloat(wVal)||0;
-  const ew=effectiveWeight(rawW,ex?.eq||'');
   const r=parseFloat(document.getElementById('r-'+ei+'-'+si)?.value);
   const eEl=document.getElementById('e1-'+ei+'-'+si);
+  const tlEl=document.getElementById('tl-'+ei+'-'+si);
+  // true load shown under the %1RM so you always see real kg moved
+  if(tlEl)tlEl.textContent=loadLabel(displayName,rawW);
   if(eEl){
-    const useW=ex?.eq==='bodyweight'?ew:rawW;
-    if(useW>0&&r>=1&&r<=30){
+    const useW=strengthLoad(displayName,rawW);
+    if(useW>0&&r>=1&&r<=60){
       const cur=est1RM(useW,r);
-      const best=getBestE1RM(displayName); 
+      const best=getBestE1RM(displayName);
       if(best>0&&cur>0){
         const pct=Math.round(cur/best*100);
         eEl.textContent=pct+'%';
         eEl.style.color=pct>=100?'var(--accent)':pct>=85?'var(--gold)':'var(--text2)';
+        eEl.title=`Est 1RM ${cur}kg vs best ${best}kg`+(r>E1RM_REP_CAP?` (capped at ${E1RM_REP_CAP} reps)`:'');
       } else if(cur>0){
-        eEl.textContent=Math.round(cur)+'';
+        eEl.textContent=Math.round(cur)+'kg';
         eEl.style.color='var(--text2)';
+        eEl.title='Estimated 1RM — no history yet to compare against';
       } else eEl.textContent='—';
     } else eEl.textContent='—';
   }
-  saveDraft();
+  if(!silent)saveDraft();
 }
 function onSetDone(ei,si,exName,exIdx){
   const btn=document.getElementById('ck-'+ei+'-'+si);
@@ -1801,7 +2088,7 @@ function collectData(){
     return{name,sets:[...tbody.querySelectorAll('tr')].map((_,si)=>{
       const r=document.getElementById('r-'+i+'-'+si),w=document.getElementById('w-'+i+'-'+si),c=document.getElementById('ck-'+i+'-'+si),rpe=document.getElementById('rpe-'+i+'-'+si),wu=document.getElementById('wu-'+i+'-'+si);
       return r?{reps:r.value,weight:w.value,rpe:rpe?rpe.value:'',done:c?c.classList.contains('done'):false,warmup:wu?wu.classList.contains('active'):false}:null;
-    }).filter(Boolean)};
+    }).filter(Boolean),eq:getEquip(name)};
   });
 }
 function saveDraft(){
@@ -1866,7 +2153,14 @@ function getLogDate(){return document.getElementById('wo-log-date')?.value||toda
 function saveSession(){
   const exs=collectData();
   if(!exs.some(e=>e.sets.some(s=>s.done))){toast('Mark at least one set done');return}
-  const d=getLogDate(),dur=stopSessionClock();
+  const d=getLogDate();
+  let dur=stopSessionClock();
+  // Guard against a session left running (one of yours recorded 14,472 min).
+  if(dur>MAX_SESSION_MIN){
+    const guess=prompt(`This session clock ran for ${dur} minutes — looks like it was left running.\n\nHow long was it really? (minutes)`,'55');
+    if(guess===null)dur=0;
+    else{const g=parseInt(guess,10);dur=(isFinite(g)&&g>0&&g<=MAX_SESSION_MIN)?g:0;}
+  }
   sessions.push({id:Date.now(),date:d,type:activeType,exercises:exs,notes:document.getElementById('session-notes').value||'',duration:dur,savedAt:new Date().toISOString()});
   ssv();clearDraft();skipTimer();toast(d===today()?`Session saved!${dur?' '+dur+'min':''}`:`Saved for ${fmt(d)}`);document.getElementById('session-notes').value='';resetWO();switchPage('home');
 }
@@ -2187,7 +2481,7 @@ function renderVolumeTab(){
     labels:work.map(s=>s.date.slice(5)+' '+((PROGRAM[s.type]?.label||'').split(' ')[0]||'')),
     datasets:[{data:work.map(calcVol),backgroundColor:work.map(s=>(PROGRAM[s.type]?.color||'#999')+'22'),borderColor:work.map(s=>PROGRAM[s.type]?.color||'#999'),borderWidth:2,borderRadius:4}]
   },options:CO});
-  const mVol={};sessions.forEach(s=>(s.exercises||[]).forEach(ex=>{const mg=MM[ex.name]||'Other';const v=(ex.sets||[]).filter(st=>st.done).reduce((a,st)=>a+(+st.weight||0)*(+st.reps||0),0);mVol[mg]=(mVol[mg]||0)+v}));delete mVol.Other;
+  const mVol={};sessions.forEach(s=>(s.exercises||[]).forEach(ex=>{const mg=MM[ex.name]||'Other';const v=(ex.sets||[]).filter(st=>st.done&&!st.warmup).reduce((a,st)=>a+volumeLoad(ex.name,st.weight)*(+st.reps||0),0);mVol[mg]=(mVol[mg]||0)+v}));delete mVol.Other;
   const mL=Object.keys(mVol);
   charts.radar=new Chart(document.getElementById('c-radar').getContext('2d'),{type:'radar',data:{labels:mL,datasets:[{data:mL.map(k=>mVol[k]),backgroundColor:'rgba(214,59,36,.08)',borderColor:'var(--accent)',pointBackgroundColor:'var(--accent)',pointRadius:3}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{r:{grid:{color:'rgba(0,0,0,.07)'},angleLines:{color:'rgba(0,0,0,.07)'},pointLabels:{color:'#888',font:{size:10}},ticks:{display:false}}}}});
   renderHeatmap('heatmap-vol');
@@ -2217,7 +2511,7 @@ function renderInsightsTab(){
     const early=rpeSessions.slice(0,3).map(avgRpe).filter(v=>v>0);
     if(recent.length&&early.length){const avgR=(recent.reduce((a,v)=>a+v,0)/recent.length).toFixed(1),avgE=(early.reduce((a,v)=>a+v,0)/early.length).toFixed(1);cards.push({title:'Average RPE Trend',html:`Early sessions avg RPE: <strong>${avgE}</strong> → Recent: <strong>${avgR}</strong>. ${+avgR>+avgE?'You\'re pushing harder. Make sure recovery matches intensity.':+avgR<+avgE?'Lower RPE at similar weights — you\'re getting stronger.':'Consistent effort level — steady progression.'}`})}
   }
-  const mVol={};sessions.forEach(s=>(s.exercises||[]).forEach(ex=>{const mg=MM[ex.name];if(!mg)return;const v=(ex.sets||[]).filter(st=>st.done).reduce((a,st)=>a+(+st.weight||0)*(+st.reps||0),0);mVol[mg]=(mVol[mg]||0)+v}));
+  const mVol={};sessions.forEach(s=>(s.exercises||[]).forEach(ex=>{const mg=MM[ex.name];if(!mg)return;const v=(ex.sets||[]).filter(st=>st.done&&!st.warmup).reduce((a,st)=>a+volumeLoad(ex.name,st.weight)*(+st.reps||0),0);mVol[mg]=(mVol[mg]||0)+v}));
   const mE=Object.entries(mVol).sort((a,b)=>b[1]-a[1]);
   if(mE.length>=4)cards.push({title:'Muscle Volume Balance',html:`Most trained: <strong>${mE[0][0]}</strong>. Least trained: <strong style="color:var(--gold)">${mE[mE.length-1][0]}</strong> — consider giving it more attention.`});
   const weeks=Math.max(1,Math.ceil(daysSince(START)/7));
@@ -2258,33 +2552,154 @@ function saveBodyStat(){
 function renderProgram(){
   document.getElementById('program-content').innerHTML=CYCLE.filter(t=>t!=='rest').map(t=>{const p=PROGRAM[t];return`<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)"><span class="badge ${p.bc}">${p.label}</span><span style="font-size:12px;color:var(--text2)">${p.sub}</span></div>${p.exercises.map(e=>`<div class="prog-ex"><div><div class="prog-ex-name">${e.name}</div><div class="prog-ex-note">${e.note}</div></div><div class="prog-ex-sets">${e.sets}×${e.reps}</div></div>`).join('')}<div class="prog-tip">${p.tip}</div></div>`}).join('');
   renderCustomExercises();
+  renderEquipSetup();
+  buildBackupText().then(t=>showBackupSize(t.length)).catch(()=>{});
 }
-function exportData(){
-  const payload=JSON.stringify({sessions,bodyStats,creatineDays,exportedAt:new Date().toISOString(),v:1});
-  const encoded=btoa(unescape(encodeURIComponent(payload)));
-  navigator.clipboard.writeText(encoded).then(()=>toast('Copied to clipboard!')).catch(()=>{
-    prompt('Copy this code:',encoded);
-  });
+// ═══════════════════════════════════════════════
+//  BACKUP & RESTORE
+//  v3 format: compact arrays + gzip + base64, wrapped in a
+//  small .json file. ~92% smaller than the old raw export
+//  (71KB -> 6KB for the same history). Still imports every
+//  older format so nothing you already saved is orphaned.
+// ═══════════════════════════════════════════════
+function packSets(sets){
+  return (sets||[]).map(s=>[s.reps??'',s.weight??'',s.rpe??'',s.done?1:0,s.warmup?1:0]);
+}
+function unpackSets(a){
+  return (a||[]).map(x=>({reps:x[0]??'',weight:x[1]??'',rpe:x[2]??'',done:!!x[3],warmup:!!x[4]}));
+}
+function packSession(s){
+  return [s.id,s.date,s.type,s.duration||0,s.notes||'',
+    (s.exercises||[]).map(e=>e.eq?[e.name,packSets(e.sets),e.eq]:[e.name,packSets(e.sets)]),
+    s.savedAt||''];
+}
+function unpackSession(a){
+  const o={id:a[0],date:a[1],type:a[2],
+    exercises:(a[5]||[]).map(r=>r[2]?{name:r[0],sets:unpackSets(r[1]),eq:r[2]}:{name:r[0],sets:unpackSets(r[1])}),
+    notes:a[4]||''};
+  if(a[3])o.duration=a[3];
+  if(a[6])o.savedAt=a[6];
+  return o;
+}
+function expandCompact(c){
+  return {sessions:(c.s||[]).map(unpackSession),bodyStats:c.b||[],creatineDays:c.c||[],
+    program:c.p,customExercises:c.ce,equipment:c.eq,restDefault:c.rd};
+}
+function buildCompact(){
+  return {s:sessions.map(packSession),b:bodyStats,c:creatineDays,
+    p:PROGRAM,ce:customExercises,eq:equipCfg,rd:defaultRestSecs};
+}
+function b64FromBytes(bytes){
+  let bin='';const CH=0x8000;
+  for(let i=0;i<bytes.length;i+=CH)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
+  return btoa(bin);
+}
+function bytesFromB64(b64){
+  const bin=atob(b64), out=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);
+  return out;
+}
+async function gzipB64(str){
+  if(typeof CompressionStream==='undefined')return 'RAW'+btoa(unescape(encodeURIComponent(str)));
+  const buf=await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+  return b64FromBytes(new Uint8Array(buf));
+}
+async function gunzipB64(b64){
+  if(b64.startsWith('RAW'))return decodeURIComponent(escape(atob(b64.slice(3))));
+  const buf=await new Response(new Blob([bytesFromB64(b64)]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  return new TextDecoder().decode(buf);
+}
+async function buildBackupText(){
+  const packed=await gzipB64(JSON.stringify(buildCompact()));
+  return JSON.stringify({app:'nourfit',v:3,fmt:'gz',savedAt:new Date().toISOString(),
+    sessions:sessions.length,d:packed});
+}
+async function exportData(){
+  try{
+    const text=await buildBackupText();
+    const name=`nourfit-backup-${today()}.json`;
+    const blob=new Blob([text],{type:'application/json'});
+    const kb=(text.length/1024).toFixed(1);
+    // iOS/Android: share sheet is the natural way to get a file off the phone
+    try{
+      const file=new File([blob],name,{type:'application/json'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:'Nour Fitness backup'});
+        toast(`Backup shared (${kb} KB)`);
+        showBackupSize(text.length);
+        return;
+      }
+    }catch(e){ if(e&&e.name==='AbortError'){toast('Backup cancelled');return;} }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    toast(`Backup saved (${kb} KB)`);
+    showBackupSize(text.length);
+  }catch(e){ toast('Backup failed — try again'); }
+}
+function showBackupSize(n){
+  const el=document.getElementById('backup-size');
+  if(el)el.textContent=`${sessions.length} sessions · ${(n/1024).toFixed(1)} KB`;
+}
+function importFile(input){
+  const f=input.files&&input.files[0];
+  if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{ingestBackup(String(rd.result||''));input.value='';};
+  rd.onerror=()=>{toast('Could not read that file');input.value='';};
+  rd.readAsText(f);
+}
+// Accepts: v3 file · v2/v1 pasted base64 · plain JSON · compact JSON
+async function ingestBackup(text){
+  text=(text||'').trim();
+  if(!text){toast('Nothing to restore');return}
+  let decoded=null;
+  try{
+    if(text[0]==='{'){
+      const w=JSON.parse(text);
+      if(w&&w.d)decoded=JSON.parse(await gunzipB64(w.d));
+      else decoded=w;
+    }else{
+      decoded=JSON.parse(decodeURIComponent(escape(atob(text))));
+    }
+    if(decoded&&decoded.s&&!decoded.sessions)decoded=expandCompact(decoded);
+  }catch(e){ toast('That file is not a Nour Fitness backup'); return; }
+  if(!decoded||(!decoded.sessions&&!decoded.bodyStats)){toast('No data found in that backup');return}
+  applyImport(decoded);
+}
+function applyImport(decoded){
+  const incoming=(decoded.sessions||[]).length;
+  if(!confirm(`Restore ${incoming} sessions?\n\nThis MERGES with what you already have — nothing is deleted.`))return;
+  const existingIds=new Set(sessions.map(s=>s.id));
+  // also dedupe on date+type, so a session re-saved with a new id can't double up
+  const sig=s=>`${s.date}|${s.type}`;
+  const existingSig=new Set(sessions.map(sig));
+  const newSess=(decoded.sessions||[]).filter(s=>!existingIds.has(s.id)&&!existingSig.has(sig(s)));
+  sessions=[...sessions,...newSess].sort((a,b)=>a.date>b.date?1:-1);
+  const existingDates=new Set(bodyStats.map(s=>s.date));
+  const newStats=(decoded.bodyStats||[]).filter(s=>!existingDates.has(s.date));
+  bodyStats=[...bodyStats,...newStats].sort((a,b)=>a.date>b.date?1:-1);
+  creatineDays=[...new Set([...creatineDays,...(decoded.creatineDays||[])])];
+  if(decoded.equipment){equipCfg=Object.assign({},decoded.equipment,equipCfg);eqsv();}
+  if(decoded.customExercises){
+    const have=new Set(customExercises.map(e=>e.name));
+    decoded.customExercises.forEach(e=>{if(!have.has(e.name))customExercises.push(e)});
+    sv(K.ce,customExercises);applyCustomExercises();
+  }
+  if(decoded.program&&confirm('This backup also contains a training program. Replace your current program with it?')){
+    PROGRAM=Object.assign({},PROGRAM,decoded.program);psv();
+  }
+  if(decoded.restDefault){defaultRestSecs=decoded.restDefault;sv(K.td,defaultRestSecs);}
+  ssv();bsv();csv();
+  const box=document.getElementById('import-box');if(box)box.value='';
+  toast(`Restored ${newSess.length} sessions, ${newStats.length} stats`);
+  renderHome();
 }
 function importData(){
-  const raw=document.getElementById('import-box').value.trim();
-  if(!raw){toast('Paste your export code first');return}
-  try{
-    const decoded=JSON.parse(decodeURIComponent(escape(atob(raw))));
-    if(!decoded.sessions&&!decoded.bodyStats){toast('Invalid code — try exporting again');return}
-    if(!confirm('This will merge imported data with your current data. Continue?'))return;
-    const existingIds=new Set(sessions.map(s=>s.id));
-    const newSess=(decoded.sessions||[]).filter(s=>!existingIds.has(s.id));
-    sessions=[...sessions,...newSess].sort((a,b)=>a.date>b.date?1:-1);
-    const existingDates=new Set(bodyStats.map(s=>s.date));
-    const newStats=(decoded.bodyStats||[]).filter(s=>!existingDates.has(s.date));
-    bodyStats=[...bodyStats,...newStats].sort((a,b)=>a.date>b.date?1:-1);
-    creatineDays=[...new Set([...creatineDays,...(decoded.creatineDays||[])])];
-    ssv();bsv();csv();
-    document.getElementById('import-box').value='';
-    toast(`Imported ${newSess.length} sessions, ${newStats.length} stats`);
-    renderHome();
-  }catch(e){toast('Failed to read code — make sure you copied it fully');}
+  const raw=(document.getElementById('import-box').value||'').trim();
+  if(!raw){toast('Paste a backup code first');return}
+  ingestBackup(raw);
 }
 function clearAll(){if(!confirm('Delete ALL data permanently?'))return;sessions=[];bodyStats=[];creatineDays=[];ssv();bsv();csv();toast('Cleared');switchPage('home')}
 
