@@ -269,9 +269,37 @@
     .tweak-opt{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-size:11px;font-weight:700;transition:all .15s;font-family:'DM Sans',sans-serif;text-transform:uppercase}
     .tweak-opt.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
+    /* WEEK SCHEDULE */
+    .sch{margin-top:12px;border-top:1px solid var(--border);padding-top:4px}
+    .sch-row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:8px;margin:2px 0;transition:background .15s}
+    .sch-row.today{background:var(--card2);box-shadow:inset 3px 0 0 var(--accent)}
+    .sch-row.rest{opacity:.45}
+    .sch-row.done .sch-name{text-decoration:line-through;opacity:.6}
+    .sch-row.missed{background:rgba(180,83,9,.09);box-shadow:inset 3px 0 0 var(--gold)}
+    .sch-flag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 6px;border-radius:4px;flex-shrink:0;white-space:nowrap}
+    .f-missed{background:#fffbeb;color:#b45309}
+    .f-moved{background:#dbeafe;color:#1d4ed8}
+    .f-rest{background:var(--card3);color:var(--text2)}
+    .sch-day{font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--text3);width:30px;flex-shrink:0;text-transform:uppercase}
+    .sch-row.today .sch-day{color:var(--accent)}
+    .sch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .sch-body{flex:1;min-width:0}
+    .sch-name{font-size:12.5px;font-weight:700;color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.3}
+    .sch-sub{font-size:10.5px;color:var(--text2);margin-top:1px;line-height:1.35}
+    .sch-tick{font-size:13px;color:var(--green);flex-shrink:0;font-weight:700}
+    .sch-km{font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:var(--text2);flex-shrink:0}
+    .sch-legend{font-size:9.5px;color:var(--text3);text-align:center;margin-top:8px;font-weight:600}
     /* RUNNING */
     .run-hero{background:linear-gradient(135deg,rgba(22,163,74,.10),rgba(37,99,235,.10));border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
-    .run-target{font-family:'Oswald',sans-serif;font-size:21px;font-weight:700;color:var(--text);letter-spacing:.3px;line-height:1.2}
+    .run-target{font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:var(--text);letter-spacing:.3px;line-height:1.3;margin-top:10px}
+    .tgt-box{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-top:9px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s}
+    .tgt-box:active{border-color:var(--accent)}
+    .tgt-km{font-family:'Oswald',sans-serif;font-size:36px;font-weight:700;color:var(--accent);line-height:1}
+    .tgt-unit{font-size:12px;color:var(--text2);font-weight:700;margin-left:2px}
+    .tgt-mid{flex:1;min-width:0}
+    .tgt-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1.1px;font-weight:700}
+    .tgt-pace{font-size:13px;color:var(--text);font-weight:700;font-family:'DM Sans',sans-serif;margin-top:2px}
+    .tgt-tap{font-size:9.5px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
     .run-zone{display:inline-block;background:var(--card3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--text);margin-top:8px;font-family:'DM Sans',sans-serif}
     .run-detail{font-size:12.5px;color:var(--text2);line-height:1.6;margin-top:10px}
     .run-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
@@ -709,10 +737,6 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-title" style="margin-bottom:8px">Strava</div>
-      <div id="strava-box"></div>
-    </div>
-    <div class="card">
       <div class="card-title" style="margin-bottom:8px">Race Pace Zones</div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.55">
         Every pace below is calculated from your 5k time. Re-test every 3 weeks and update it —
@@ -732,6 +756,10 @@
       </div>
       <div id="zone-table"></div>
       <div id="hm-prediction" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px">Your Training Week</div>
+      <div id="week-template"></div>
     </div>
     <div class="card">
       <div class="card-title" style="margin-bottom:8px">9-Week Plan to Race Day</div>
@@ -946,7 +974,7 @@ window.parent.postMessage({type:'__edit_mode_available'}, '*');
 // ═══════════════════════════════════════════════
 const START='2026-03-22';
 const MAX_SESSION_MIN=180; // anything longer = clock was left running
-const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft',p:'nf3_program',ce:'nf3_custom',crt:'nf3_creatineReminderTime',eq:'nf3_equipment',tt:'nf3_tt5k',extra:'nf3_extraEx',sv:'nf3_strava',sid:'nf3_stravaIds'};
+const K={s:'nf3_sessions',b:'nf3_stats',c:'nf3_creatine',td:'nf3_timerDefault',draft:'nf3_draft',p:'nf3_program',ce:'nf3_custom',crt:'nf3_creatineReminderTime',eq:'nf3_equipment',tt:'nf3_tt5k',extra:'nf3_extraEx',sv:'nf3_strava',sid:'nf3_stravaIds',swk:'nf3_stravaWorker'};
 const ld=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 let sessions=ld(K.s)||[], bodyStats=ld(K.b)||[], creatineDays=ld(K.c)||[];
@@ -1080,7 +1108,10 @@ function planWeekFor(dateStr){
 }
 function daysToRace(){ return Math.ceil((new Date(RACE.date+'T05:00:00')-new Date())/864e5); }
 function plannedRun(dateStr,type){
-  const w=planWeekFor(dateStr); if(!w)return null;
+  let w=planWeekFor(dateStr);
+  // Before the block opens, show Week 1's targets rather than nothing.
+  if(!w&&PLAN.length&&(dateStr||today())<PLAN[0].start)w=PLAN[0];
+  if(!w)return null;
   const key=type==='run-quality'?'quality':type==='run-long'?'long':'easy';
   return w.runs[key]?Object.assign({wk:w.wk},w.runs[key]):null;
 }
@@ -2106,124 +2137,10 @@ function renderHome(){
   renderRaceCountdown();renderTodayCard();renderWeekProgress();
   renderPRs();renderHomeInsights();renderDeloadBanner();renderHeatmap('heatmap-home');checkDraft();
 }
-// ═══════════════════════════════════════════════
-//  STRAVA AUTO-SYNC
-//  The Netlify function holds the client secret and does the token
-//  refresh; the browser only ever stores a read-only refresh token.
-// ═══════════════════════════════════════════════
-const SFN='/.netlify/functions/strava';
-let stravaCfg = ld(K.sv) || null;      // {refresh, name, lastSync}
-let stravaSeen = ld(K.sid) || [];      // activity ids already imported
-
-function captureStravaReturn(){
-  const u=new URL(location.href);
-  const v=u.searchParams.get('strava');
-  if(!v)return;
-  u.searchParams.delete('strava');
-  history.replaceState({},'',u.pathname+(u.search||'')+u.hash);
-  if(v==='denied'){toast('Strava connection cancelled');return}
-  if(v==='error'){toast('Strava failed — check your Netlify env vars');return}
-  try{
-    const d=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(v)))));
-    if(!d.r)throw 0;
-    stravaCfg={refresh:d.r,name:d.n||'',lastSync:null};
-    sv(K.sv,stravaCfg);
-    toast('Strava connected'+(d.n?' — hi '+d.n:''));
-    setTimeout(()=>syncStrava(true),400);
-  }catch(e){toast('Could not read the Strava response')}
-}
-function connectStrava(){ location.href=SFN+'?action=login'; }
-function disconnectStrava(){
-  if(!confirm('Disconnect Strava? Runs already imported stay in your history.'))return;
-  stravaCfg=null; localStorage.removeItem(K.sv);
-  renderStravaBox(); toast('Strava disconnected');
-}
-// Which slot does a Strava run belong to? Calendar first, then
-// distance against that week's plan.
-function classifyRun(date,dist){
-  const slot=WEEK_MAP[new Date(date+'T12:00:00').getDay()];
-  if(isRun(slot))return slot;
-  const w=planWeekFor(date);
-  if(w){
-    if(dist>=w.runs.long.d*0.8)return 'run-long';
-    if(dist>=w.runs.quality.d*0.85)return 'run-quality';
-  }
-  return dist>=13?'run-long':'run-easy';
-}
-async function syncStrava(quiet){
-  if(!stravaCfg||!stravaCfg.refresh){toast('Connect Strava first');return}
-  const btn=document.getElementById('sv-sync-btn');
-  if(btn){btn.disabled=true;btn.textContent='Syncing...';}
-  try{
-    const r=await fetch(SFN+'?action=sync',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({refresh:stravaCfg.refresh})});
-    const j=await r.json();
-    if(!r.ok){
-      if(j.error==='reconnect'){stravaCfg=null;localStorage.removeItem(K.sv);renderStravaBox();toast('Strava session expired — reconnect');return}
-      toast(j.error||'Sync failed');return;
-    }
-    if(j.refresh)stravaCfg.refresh=j.refresh;  // Strava rotates these every call
-    const seen=new Set(stravaSeen);
-    // don't double-import something already logged by hand that day
-    const manual=new Set(sessions.filter(s=>isRun(s.type)&&s.run&&!s.run.strava)
-      .map(s=>`${s.date}|${Math.round((+s.run.dist||0)*10)}`));
-    let added=0;
-    (j.runs||[]).forEach(a=>{
-      if(seen.has(a.sid))return;
-      if(manual.has(`${a.date}|${Math.round(a.dist*10)}`)){seen.add(a.sid);return}
-      const type=classifyRun(a.date,a.dist);
-      const plan=plannedRun(a.date,type);
-      sessions.push({id:Date.now()+added,date:a.date,type,exercises:[],
-        run:{dist:a.dist,sec:a.sec,pace:+(a.sec/a.dist).toFixed(1),effort:null,
-             hr:a.hr||null,elev:a.elev!=null?a.elev:null,
-             planned:plan?plan.d:null,wk:plan?plan.wk:null,strava:a.sid},
-        notes:a.name||'',duration:Math.round(a.sec/60),savedAt:new Date().toISOString()});
-      seen.add(a.sid);added++;
-    });
-    stravaSeen=[...seen].slice(-500);
-    stravaCfg.lastSync=new Date().toISOString();
-    sv(K.sv,stravaCfg);sv(K.sid,stravaSeen);
-    if(added){sessions.sort((a,b)=>a.date>b.date?1:-1);ssv();}
-    renderStravaBox();
-    if(!quiet||added)toast(added?`Imported ${added} run${added===1?'':'s'}`:'Already up to date');
-    if(curPage==='home')renderHome();
-  }catch(e){
-    toast('Could not reach the sync function — is it deployed?');
-  }finally{
-    const b=document.getElementById('sv-sync-btn');
-    if(b){b.disabled=false;b.textContent='Sync Runs Now';}
-  }
-}
-function renderStravaBox(){
-  const el=document.getElementById('strava-box');if(!el)return;
-  if(!stravaCfg){
-    el.innerHTML=`<p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px">
-      Pull runs in automatically — distance, time, pace and heart rate, classified against the plan.
-      <strong style="color:var(--text)">Keep your phone on you.</strong> The Fitbit Air has no GPS chip — it borrows
-      your phone's location. Phone in pocket means real GPS distance; phone left behind means distance is
-      guessed from your stride, and every pace zone below becomes meaningless.</p>
-      <button class="btn btn-primary btn-sm btn-full" onclick="connectStrava()">Connect Strava</button>
-      <details style="margin-top:12px">
-        <summary style="font-size:11px;color:var(--text3);cursor:pointer;font-weight:700;text-transform:uppercase;letter-spacing:1px">One-time setup</summary>
-        <div style="font-size:11.5px;color:var(--text2);line-height:1.7;margin-top:8px">
-          1. <strong style="color:var(--text)">strava.com/settings/api</strong> → create an app. Set
-             <em>Authorization Callback Domain</em> to your Netlify domain (no https://).<br>
-          2. Netlify → Site settings → Environment variables → add
-             <strong style="color:var(--text)">STRAVA_CLIENT_ID</strong> and
-             <strong style="color:var(--text)">STRAVA_CLIENT_SECRET</strong>.<br>
-          3. Redeploy, then press Connect.
-        </div></details>`;
-    return;
-  }
-  const last=stravaCfg.lastSync?fmt(stravaCfg.lastSync.slice(0,10)):'never';
-  const imported=sessions.filter(s=>s.run&&s.run.strava).length;
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <span class="eq-badge" style="background:#dcfce7;color:#15803d">Connected</span>
-      <span style="font-size:11.5px;color:var(--text2)">${imported} run${imported===1?'':'s'} imported · last sync ${last}</span>
-    </div>
-    <button class="btn btn-primary btn-sm btn-full" id="sv-sync-btn" style="margin-bottom:8px" onclick="syncStrava()">Sync Runs Now</button>
-    <button class="btn btn-secondary btn-sm btn-full" onclick="disconnectStrava()">Disconnect</button>`;
-}
+// Strava auto-sync was removed — runs are logged by hand.
+// These two are kept so existing backups still restore cleanly.
+let stravaSeen = ld(K.sid) || [];
+let stravaWorker = ld(K.swk) || '';
 
 // ═══════════════════════════════════════════════
 //  RACE DASHBOARD
@@ -2284,10 +2201,13 @@ function renderWeekProgress(){
         Week 1 opens <strong style="color:var(--text)">${fmtLong(first.start)}</strong> at
         <strong style="color:var(--text)">${first.vol} km</strong> across 3 runs, longest ${first.runs.long.d} km.
       </p>
-      <div style="font-size:12px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--card2);border-radius:8px">
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--card2);border-radius:8px;margin-bottom:4px">
         <strong style="color:var(--text)">Before then:</strong> run a 5 km time trial this weekend.
         Every pace in this plan is derived from it — set it in Plan → Race Pace Zones.
-      </div></div>`;
+      </div>
+      <div class="sch">${scheduleRows(first.start,false)}</div>
+      <div class="sch-legend">Week 1 · this is your repeating weekly shape</div>
+      </div>`;
     return;
   }
   const [a,b]=weekBounds();
@@ -2304,7 +2224,105 @@ function renderWeekProgress(){
     </div>
     <div class="wk-bar"><div class="wk-fill" style="width:${pct}%"></div></div>
     <div style="font-size:11px;color:var(--text3);margin-top:7px">Longest planned this week: ${wk.runs.long.d} km</div>
+    <div id="week-schedule"></div>
   </div>`;
+  renderWeekSchedule();
+}
+// ═══════════════════════════════════════════════
+//  WEEK SCHEDULE — Mon to Sun, in order
+// ═══════════════════════════════════════════════
+const DAY_ORDER=[1,2,3,4,5,6,0];
+const DAY_NAME={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat',0:'Sun'};
+function scheduleRows(weekStartISO, compact){
+  const mon=new Date(weekStartISO+'T12:00:00');
+  const t=today();
+  return DAY_ORDER.map((dow,i)=>{
+    const d=new Date(mon); d.setDate(mon.getDate()+i);
+    const ds=d.toISOString().slice(0,10);
+    const type=WEEK_MAP[dow];
+    const isToday=ds===t;
+    const p=PROGRAM[type];
+    const isRaceDay=ds===RACE.date;
+    const pl=isRun(type)?plannedRun(ds,type):null;
+    // What actually got logged on this date — not just an exact type match.
+    const onDay=sessions.filter(s=>s.date===ds);
+    const exact=onDay.some(s=>s.type===type);
+    const anyRun=onDay.find(s=>isRun(s.type));
+    const anyLift=onDay.find(s=>s.type==='fullbody-a'||s.type==='fullbody-b');
+    const restLogged=onDay.some(s=>s.type==='rest');
+    const isPast=ds<t;
+    // Credit the day if the right CATEGORY of work happened, even if the
+    // specific session differs — a long run done Sunday still counts.
+    const logged = exact
+      || (isRun(type)&&!!anyRun)
+      || ((type==='fullbody-a'||type==='fullbody-b')&&!!anyLift);
+    const moved = logged && !exact;
+    const missed = !logged && !restLogged && type!=='rest' && isPast;
+    const restDay = !logged && restLogged && type!=='rest';
+    // A rest day you took that wasn't scheduled still deserves a row
+    const bonus = type==='rest' && (anyRun||anyLift) ? (anyRun||anyLift) : null;
+    let name,sub,km='',dot='var(--card3)';
+    if(type==='rest'){
+      name='Rest'; sub=isRaceDay?'':'Recovery';
+    } else if(pl){
+      name=isRaceDay?'🏁 RACE DAY':p.label;
+      sub=isRaceDay?`${RACE.name} · ${RACE.startTime} start`:`${ZONE_LABEL[pl.z]} · ${zoneStr(pl.z)}`;
+      km=pl.d+'km';
+      dot=type==='run-long'?'#7c3aed':type==='run-quality'?'#b45309':'#16a34a';
+    } else {
+      name=p?p.label:type; sub=p?p.sub:'';
+      dot=type==='fullbody-a'?'#d63b24':'#2563eb';
+    }
+    // Unscheduled session on a rest day — show what you actually did
+    if(bonus){
+      name=(PROGRAM[bonus.type]||{}).label||bonus.type;
+      sub=bonus.run?`${bonus.run.dist}km · ${secToPace(bonus.run.pace)}/km`:'Extra session';
+      km=bonus.run?bonus.run.dist+'km':'';
+      dot='#16a34a';
+    }
+    let flag='';
+    if(missed)  flag='<span class="sch-flag f-missed">missed</span>';
+    else if(restDay) flag='<span class="sch-flag f-rest">rest taken</span>';
+    else if(moved)   flag='<span class="sch-flag f-moved">done</span>';
+    const cls=['sch-row',(type==='rest'&&!bonus)?'rest':'',isToday?'today':'',
+               (logged||bonus)?'done':'',missed?'missed':''].filter(Boolean).join(' ');
+    return `<div class="${cls}">
+      <span class="sch-day">${DAY_NAME[dow]}</span>
+      <span class="sch-dot" style="background:${dot}"></span>
+      <div class="sch-body">
+        <div class="sch-name">${name}</div>
+        ${sub&&!compact?`<div class="sch-sub">${sub}</div>`:''}
+      </div>
+      ${flag}
+      ${km?`<span class="sch-km">${km}</span>`:''}
+      ${(logged||bonus)?'<span class="sch-tick">✓</span>':''}
+    </div>`;
+  }).join('');
+}
+function renderWeekSchedule(){
+  const el=document.getElementById('week-schedule');if(!el)return;
+  const [a]=weekBounds();
+  // Missed work is not made up — the weekly total is what matters, and
+  // cramming a skipped run into an already-loaded week is how people get hurt.
+  const [s0,s1]=weekBounds();
+  const missedCount=(scheduleRows(a,false).match(/f-missed/g)||[]).length;
+  el.innerHTML=`<div class="sch">${scheduleRows(a,false)}</div>
+    <div class="sch-legend">Today highlighted · ✓ done · amber = missed</div>
+    ${missedCount?`<div style="font-size:11px;color:var(--text2);line-height:1.55;margin-top:8px;padding:9px 11px;background:var(--card2);border-radius:7px">
+      <strong style="color:var(--gold)">${missedCount} session${missedCount===1?'':'s'} missed this week.</strong>
+      Don't try to make ${missedCount===1?'it':'them'} up — cramming a skipped run into a loaded week is how runners get injured. Pick the plan back up today.
+    </div>`:''}`;
+}
+// Program page: the repeating template, independent of date
+function renderWeekTemplate(){
+  const el=document.getElementById('week-template');if(!el)return;
+  const wk=planWeekFor(today())||PLAN[0];
+  el.innerHTML=`<div class="sch" style="border-top:none;padding-top:0">${scheduleRows(wk.start,false)}</div>
+    <div style="font-size:11px;color:var(--text2);line-height:1.6;margin-top:10px;padding:10px 12px;background:var(--card2);border-radius:8px">
+      Heavy legs sit on <strong style="color:var(--text)">Monday</strong> — furthest from Saturday's long run.
+      <strong style="color:var(--text)">Friday</strong> is upper-biased on purpose so you're not running long on trashed legs.
+      Wednesday and Sunday are full rest.
+    </div>`;
 }
 function renderZoneTable(){
   const el=document.getElementById('zone-table');if(!el)return;
@@ -2667,18 +2685,36 @@ function buildRunForm(t){
   const zk=plan?plan.z:(t==='run-long'?'long':t==='run-quality'?'tempo':'easy');
   if(plan){
     const isRace=plan.d>=21;
-    hero.innerHTML=`<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:1.3px;font-weight:700;margin-bottom:5px">Week ${plan.wk} of 9 · ${isRace?'RACE DAY':'Target session'}</div>
+    const early=getLogDate()<PLAN[0].start;
+    hero.innerHTML=`<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:1.3px;font-weight:700">Week ${plan.wk} of 9 · ${isRace?'RACE DAY':early?'Week 1 preview':'Target session'}</div>
+      <div class="tgt-box" onclick="useTarget(${plan.d})">
+        <div><span class="tgt-km">${plan.d}</span><span class="tgt-unit">km</span></div>
+        <div class="tgt-mid">
+          <div class="tgt-lbl">${ZONE_LABEL[zk]} pace</div>
+          <div class="tgt-pace">${zoneStr(zk)}</div>
+        </div>
+        <span class="tgt-tap">Tap to fill</span>
+      </div>
       <div class="run-target">${plan.title}</div>
-      <div class="run-zone">${ZONE_LABEL[zk]} · ${zoneStr(zk)}</div>
       <div class="run-detail">${plan.detail}</div>`;
     const di=document.getElementById('run-dist');
     if(di&&!di.value)di.placeholder=plan.d.toFixed(1);
   } else {
-    hero.innerHTML=`<div class="run-target">${PROGRAM[t].label}</div>
+    hero.innerHTML=`<div class="run-target" style="margin-top:0">${PROGRAM[t].label}</div>
       <div class="run-zone">${ZONE_LABEL[zk]} · ${zoneStr(zk)}</div>
       <div class="run-detail">Outside the 9-week plan window — log it anyway, it still counts toward your volume.</div>`;
   }
   updatePace();
+}
+// Tap the target to drop it straight into the distance field
+function useTarget(km){
+  const di=document.getElementById('run-dist');
+  if(!di)return;
+  di.value=km;
+  updatePace();
+  if(navigator.vibrate)navigator.vibrate(10);
+  const mi=document.getElementById('run-min');
+  if(mi&&!mi.value)mi.focus();
 }
 function setEffort(v,btn){
   document.getElementById('run-effort-val').value=v;
@@ -3298,7 +3334,7 @@ function saveBodyStat(){
 function renderProgram(){
   document.getElementById('program-content').innerHTML=CYCLE.filter(t=>t!=='rest').map(t=>{const p=PROGRAM[t];return`<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)"><span class="badge ${p.bc}">${p.label}</span><span style="font-size:12px;color:var(--text2)">${p.sub}</span></div>${p.exercises.map(e=>`<div class="prog-ex"><div><div class="prog-ex-name">${e.name}</div><div class="prog-ex-note">${e.note}</div></div><div class="prog-ex-sets">${e.sets}×${e.reps}</div></div>`).join('')}<div class="prog-tip">${p.tip}</div></div>`}).join('');
   renderCustomExercises();
-  renderStravaBox();renderZoneTable();renderPlanTable();
+  renderWeekTemplate();renderZoneTable();renderPlanTable();
   renderEquipSetup();
   buildBackupText().then(t=>showBackupSize(t.length)).catch(()=>{});
 }
@@ -3331,12 +3367,12 @@ function unpackSession(a){
 function expandCompact(c){
   return {sessions:(c.s||[]).map(unpackSession),bodyStats:c.b||[],creatineDays:c.c||[],
     program:c.p,customExercises:c.ce,equipment:c.eq,restDefault:c.rd,
-    tt5k:c.tt,stravaSeen:c.sid};
+    tt5k:c.tt,stravaSeen:c.sid,stravaWorker:c.swk};
 }
 function buildCompact(){
   return {s:sessions.map(packSession),b:bodyStats,c:creatineDays,
     p:PROGRAM,ce:customExercises,eq:equipCfg,rd:defaultRestSecs,
-    tt:tt5k,sid:stravaSeen};
+    tt:tt5k,sid:stravaSeen,swk:stravaWorker};
 }
 function b64FromBytes(bytes){
   let bin='';const CH=0x8000;
@@ -3441,6 +3477,7 @@ function applyImport(decoded){
   }
   if(decoded.restDefault){defaultRestSecs=decoded.restDefault;sv(K.td,defaultRestSecs);}
   if(decoded.tt5k){tt5k=decoded.tt5k;ttsv();}
+  if(decoded.stravaWorker&&!stravaWorker){stravaWorker=decoded.stravaWorker;sv(K.swk,stravaWorker);}
   if(Array.isArray(decoded.stravaSeen)){stravaSeen=[...new Set([...stravaSeen,...decoded.stravaSeen])].slice(-500);sv(K.sid,stravaSeen);}
   ssv();bsv();csv();
   const box=document.getElementById('import-box');if(box)box.value='';
@@ -3488,12 +3525,7 @@ function toggleMode(){
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
-  applyMode();captureStravaReturn();renderHome();renderProgram();
-  // quietly pull anything new, at most every 6 hours
-  if(stravaCfg&&stravaCfg.refresh){
-    const last=stravaCfg.lastSync?new Date(stravaCfg.lastSync).getTime():0;
-    if(Date.now()-last>6*3600*1000)setTimeout(()=>syncStrava(true),1500);
-  }
+  applyMode();renderHome();renderProgram();
   // If reminder time set and we're past it today and creatine not logged → fire now
   const rt=localStorage.getItem(K.crt);
   if(rt){
