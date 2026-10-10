@@ -228,14 +228,20 @@ select.in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
 .st-hd{padding:0 2px 9px;font-size:10px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
 .st-hd s:nth-child(3),.st-hd s:nth-child(4),.st-hd s:nth-child(5){text-align:center;text-decoration:none}
 .st-hd s{text-decoration:none}
-.sw{position:relative;overflow:hidden;border-radius:10px;margin-bottom:4px;isolation:isolate}
-.st-wipe{contain:strict}
+.sw{margin-bottom:4px}
+/* the swipe layer lives here and ONLY wraps the row — never the RPE strip,
+   or expanding the strip stretches the red delete background with it */
+.swz{position:relative;overflow:hidden;border-radius:10px;isolation:isolate}
 .st-r{position:relative;background:var(--lift);padding:5px 2px;border-radius:10px;z-index:1;
   transition:transform .22s var(--ease),background .22s}
-.st-r.done{background:rgba(61,220,132,.09)}
-.st-r.wu{background:rgba(255,178,36,.07)}
+/* These MUST be opaque: the delete layer sits directly behind the row,
+   so any transparency bleeds red through a ticked or warm-up set. */
+.st-r.done{background:color-mix(in srgb,var(--go) 11%,var(--lift))}
+.st-r.wu{background:color-mix(in srgb,var(--warn) 10%,var(--lift))}
 .st-wipe{position:absolute;inset:0;background:var(--hot);display:flex;align-items:center;justify-content:flex-end;
-  padding-right:20px;color:#fff;font-size:12px;font-weight:650;border-radius:10px;z-index:0;letter-spacing:.02em}
+  padding-right:20px;color:#fff;font-size:12px;font-weight:650;border-radius:10px;z-index:0;letter-spacing:.02em;
+  opacity:0;transition:opacity .12s}
+.swz.dragging .st-wipe{opacity:1}
 .st-n{text-align:center;font-size:13px;font-weight:650;color:var(--ink3);cursor:pointer;min-height:40px;
   display:flex;align-items:center;justify-content:center;border-radius:7px;font-variant-numeric:tabular-nums}
 .st-r.wu .st-n{color:var(--warn)}
@@ -259,7 +265,7 @@ select.in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
 .ck:active{transform:scale(.88)}
 
 /* RPE reveal */
-.rp{display:grid;grid-template-columns:auto repeat(5,1fr);gap:6px;align-items:center;padding:0 2px;
+.rp{position:relative;z-index:2;display:grid;grid-template-columns:auto repeat(5,1fr);gap:6px;align-items:center;padding:0 2px;
   max-height:0;opacity:0;overflow:hidden;transition:max-height .28s var(--ease),opacity .2s,margin .28s}
 .rp.on{max-height:60px;opacity:1;margin:3px 0 10px}
 .rp-l{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
@@ -312,8 +318,10 @@ select.in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
 .pk-i:active{opacity:.55}
 .pk-bar{width:3px;height:34px;border-radius:2px;flex-shrink:0}
 .pk-m{flex:1;min-width:0}
-.pk-t{font-size:16px;font-weight:650;letter-spacing:-.015em;color:var(--ink)}
-.pk-s{font-size:12.5px;color:var(--ink2);margin-top:3px}
+.pk-t{display:block;font-size:16px;font-weight:650;letter-spacing:-.015em;color:var(--ink)}
+.pk-s{display:block;font-size:12.5px;color:var(--ink2);margin-top:3px;line-height:1.4}
+.pk-day{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:4px}
 .pk-now{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--hot);flex-shrink:0}
 
 /* summary */
@@ -791,8 +799,15 @@ const PLAN=[
     e:{d:4,t:'4 km shakeout',z:'easy',det:'Thursday. Very easy, few strides, then rest.'},
     l:{d:21.1,t:'RACE DAY — Pyramids Half',z:'race',det:'5:00 AM gun. First 5km must feel too easy. Hold race pace to 15km, then empty the tank.'}}},
 ];
+// ─────────────────────────────────────────────────────────────
+//  THE WEEK — single source of truth.
+//  Change this one object and the picker order, day labels, week
+//  schedule and "today" suggestion all follow automatically.
+// ─────────────────────────────────────────────────────────────
 const WEEKMAP={1:'fba',2:'runq',3:'rest',4:'rune',5:'fbb',6:'runl',0:'rest'};
-const RUNS=['rune','runq','runl'];
+const DORDER=[1,2,3,4,5,6,0];
+const DNAME={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat',0:'Sun'};
+const RUNS=['rune','runq','runl','tt5'];
 const isRun=t=>RUNS.includes(t);
 const blockOn=d=>(d||today())>=PLAN[0].start;
 function planWeek(d){d=d||today();for(let i=PLAN.length-1;i>=0;i--)if(d>=PLAN[i].start)return PLAN[i];return null}
@@ -800,6 +815,8 @@ function planRun(d,type){
   let w=planWeek(d);
   if(!w&&(d||today())<PLAN[0].start)w=PLAN[0];
   if(!w)return null;
+  if(type==='tt5')return {wk:w.wk,d:5,z:'interval',t:'5 km time trial',
+    det:'All-out but evenly paced. Hold roughly the same split for all five kilometres — the number is only useful if the effort was honest.'};
   const k=type==='runq'?'q':type==='runl'?'l':'e';
   return w.r[k]?Object.assign({wk:w.wk},w.r[k]):null;
 }
@@ -866,9 +883,20 @@ const PROG={
  rune:{label:'Easy Run',sub:'Aerobic base',color:'#22c55e',kind:'run',tip:'',ex:[]},
  runq:{label:'Quality Run',sub:'Tempo / intervals',color:'#f59e0b',kind:'run',tip:'',ex:[]},
  runl:{label:'Long Run',sub:'Endurance',color:'#8b5cf6',kind:'run',tip:'',ex:[]},
+ tt5:{label:'5 km Time Trial',sub:'Sets every pace zone',color:'#FFB224',kind:'run',
+  tip:'Flat route, phone with you for GPS. Warm up 10–15 min plus a few strides. Run it EVENLY — the mistake is a fast first kilometre that you pay for twice over. Afterwards the app will offer to recalculate your zones.',ex:[]},
  rest:{label:'Rest Day',sub:'Recovery',color:'#64748b',kind:'rest',tip:'',ex:[]},
 };
-const PICK=['fba','fbb','rune','runq','runl'];
+// Ordered by the training week, not alphabetically — Mon → Sat.
+// Derived from WEEKMAP, never hand-written. A session that appears on
+// more than one day is listed once, under the first day it falls on.
+const PICK=DORDER.map(d=>WEEKMAP[d])
+  .filter((t,i,a)=>t&&t!=='rest'&&PROG[t]&&a.indexOf(t)===i);
+const PICK_DAY=DORDER.reduce((m,d)=>{
+  const t=WEEKMAP[d];
+  if(t&&t!=='rest'&&!m[t])m[t]=DNAME[d];
+  return m;
+},{});
 // legacy types so old history still renders
 const LEGACY_LABEL={'push-a':'Push A','push-b':'Push B','pull-a':'Pull A','pull-b':'Pull B',
  'legs-a':'Legs A','legs-b':'Legs B','upper-a':'Upper A','upper-b':'Upper B','upper-c':'Upper C',
@@ -981,15 +1009,19 @@ function buildPicker(){
   document.getElementById('l-active').style.display='none';
   document.getElementById('sessbar').classList.remove('on');
   const d=logDate(), nx=nextType(), isToday=d===today();
+  // Before the block opens the only thing that matters is the time trial,
+  // so it leads. Afterwards it drops to the bottom as a re-test option.
+  const order=blockOn(d)?[...PICK,'tt5']:['tt5',...PICK];
   document.getElementById('l-grid').innerHTML=
-    PICK.map(t=>{
+    order.map(t=>{
       const p=PROG[t], pr=isRun(t)?planRun(d,t):null;
-      const sug=blockOn(d)&&isToday&&t===nx;
+      const sug=t==='tt5' ? !blockOn(d) : (blockOn(d)&&isToday&&t===nx);
       const sub=pr?`${pr.d} km &middot; ${esc(pr.t.replace(/^[\d.]+\s*km\s*/,'')||ZNAME[pr.z])}`:p.sub;
+      const day=PICK_DAY[t];
       return `<button class="pk-i" onclick="startSession('${t}')">
         <span class="pk-bar" style="background:${p.color}"></span>
-        <span class="pk-m"><span class="pk-t">${p.label}</span><span class="pk-s">${sub}</span></span>
-        ${sug?'<span class="pk-now">Today</span>':''}</button>`;
+        <span class="pk-m">${day?`<span class="pk-day">${day}</span>`:''}<span class="pk-t">${p.label}</span><span class="pk-s">${sub}</span></span>
+        ${sug?`<span class="pk-now">${t==='tt5'?'Start here':'Today'}</span>`:''}</button>`;
     }).join('')
     +`<button class="pk-i" onclick="startSession('rest')">
         <span class="pk-bar" style="background:var(--ink3);opacity:.4"></span>
@@ -1156,7 +1188,8 @@ function addRow(ei,si,pre){
   const prevTx=p?`${p.w||'–'}${p.w?'kg':''} × ${p.r||'–'}`:'—';
   const d=document.createElement('div');
   d.className='sw';d.id='sw-'+ei+'-'+si;
-  d.innerHTML=`<div class="st-wipe">Delete</div>
+  d.innerHTML=`<div class="swz">
+   <div class="st-wipe">Delete</div>
    <div class="st-r" id="sr-${ei}-${si}">
     <div class="st-n" id="sn-${ei}-${si}" onclick="toggleWU(${ei},${si})" title="Tap for warm-up">${si+1}</div>
     <div class="st-p${p?' live':''}" ${p?`onclick="usePrev(${ei},${si},'${attr(p.w)}','${attr(p.r)}')"`:''}>${prevTx}</div>
@@ -1164,7 +1197,7 @@ function addRow(ei,si,pre){
     <input class="nf" type="number" inputmode="numeric" id="r-${ei}-${si}" placeholder="${p?.r??'0'}" value="${pre?.reps??''}" oninput="onInput(${ei},${si})"/>
     <button class="ck" id="t-${ei}-${si}" onclick="tickSet(${ei},${si})" aria-label="Done">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
-   </div>
+   </div></div>
    <div class="rp" id="rp-${ei}-${si}">
      <span class="rp-l">RPE</span>
      ${[6,7,8,9,10].map(v=>`<button class="rp-b" onclick="setRPE(${ei},${si},${v})">${v}</button>`).join('')}
@@ -1243,18 +1276,33 @@ function attachSwipe(scope){
   const rows=(scope||document).querySelectorAll?.('.set-row')||[];
   rows.forEach(row=>{
     if(row._sw)return; row._sw=1;
-    let x0=0,dx=0,active=false;
-    row.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;dx=0;active=true;row.style.transition='none'},{passive:true});
+    let x0=0,y0=0,dx=0,active=false,locked=null;
+    row.addEventListener('touchstart',e=>{
+      x0=e.touches[0].clientX;y0=e.touches[0].clientY;dx=0;active=true;locked=null;
+      row.style.transition='none';
+    },{passive:true});
     row.addEventListener('touchmove',e=>{
       if(!active)return;
-      dx=Math.min(0,e.touches[0].clientX-x0);
-      if(dx<-6)row.style.transform=`translateX(${Math.max(dx,-110)}px)`;
+      const cx=e.touches[0].clientX-x0, cy=e.touches[0].clientY-y0;
+      // decide once whether this gesture is a scroll or a swipe, so a
+      // vertical scroll never drags rows sideways
+      if(locked===null){
+        if(Math.abs(cx)<5&&Math.abs(cy)<5)return;
+        locked=Math.abs(cx)>Math.abs(cy)*1.3?'x':'y';
+      }
+      if(locked!=='x'){active=false;row.style.transition='';row.style.transform='';
+        row.parentElement?.classList.remove('dragging');return}
+      row.parentElement?.classList.add('dragging');
+      dx=Math.min(0,cx);
+      row.style.transform=`translateX(${Math.max(dx,-110)}px)`;
     },{passive:true});
-    row.addEventListener('touchend',()=>{
+    const settle=()=>{
       if(!active)return;active=false;row.style.transition='';
       if(dx<-72){row.style.transform='translateX(-100%)';setTimeout(()=>delRow(row.id),180)}
-      else row.style.transform='';
-    });
+      else {row.style.transform='';setTimeout(()=>row.parentElement?.classList.remove('dragging'),200)}
+    };
+    row.addEventListener('touchend',settle);
+    row.addEventListener('touchcancel',settle);
   });
 }
 function delRow(id){
@@ -1495,6 +1543,34 @@ function calcPace(){
   else if(v.p>hi*1.06) vd.innerHTML=`<span class="vd vd-s">Easier than target ${zStr(zk)}</span>`;
   else vd.innerHTML=`<span class="vd vd-ok">On target &middot; ${ZNAME[zk]}</span>`;
 }
+// After a time trial, turn the result into pace zones in one tap.
+function offerZoneUpdate(sec){
+  const old=tt5k, p=sec/5;
+  const preview=k=>{const m=ZMULT[k];return `${mmss(p*m[0])}–${mmss(p*m[1])}/km`};
+  openSheet(`
+    <div style="text-align:center;padding:8px 0 2px">
+      <div class="eyebrow">Time trial complete</div>
+      <div class="d9 sm-fig">${hms(sec)}</div>
+      <div style="font-size:14px;color:var(--ink2);margin-top:8px">5 km &middot; ${mmss(p)}/km</div>
+    </div>
+    <div class="notice boxed" style="margin-top:22px">Update every pace zone from this result?
+      ${old!==sec?`Your zones are currently built on a <b>${hms(old)}</b> estimate.`:''}</div>
+    <div style="margin-top:18px">
+      ${['easy','long','race','tempo'].map(k=>`<div class="lr" style="cursor:default">
+        <div class="lr-main"><div class="lr-t">${ZNAME[k]}</div>
+          <div class="lr-s">now ${zStr(k)}</div></div>
+        <span class="lr-v">${preview(k)}</span></div>`).join('')}
+    </div>
+    <div class="btn-row" style="margin-top:22px">
+      <button class="b b-line" onclick="closeSheet();go('today')">Not now</button>
+      <button class="b b-hot" onclick="applyZones(${sec})">Update zones</button>
+    </div>`);
+}
+function applyZones(sec){
+  tt5k=sec;sv(K.tt,tt5k);
+  closeSheet();go('today');
+  toast('Zones rebuilt from '+hms(sec)+' 5k');
+}
 function setEff(v,b){
   document.getElementById('r-effv').value=v;
   document.querySelectorAll('#r-eff b').forEach(x=>x.classList.remove('on'));
@@ -1514,8 +1590,11 @@ function saveRun(){
   sessions.sort((a,b)=>a.date>b.date?1:-1);saveSessions();clearDraft();
   ['r-km','r-min','r-sec','r-note','r-effv'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
   document.querySelectorAll('#r-eff b').forEach(x=>x.classList.remove('on'));
+  const wasTT=actType==='tt5';
+  endSession();buildPicker();
+  if(wasTT&&v.d>=4.5&&v.d<=5.5){ offerZoneUpdate(v.t); return; }
   toast(`${v.d.toFixed(1)}km @ ${mmss(v.p)}/km saved${isPB?' — longest run yet!':''}`);
-  endSession();buildPicker();go('today');
+  go('today');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1554,7 +1633,6 @@ function paintThemeIcon(){
 }
 
 // ═══ WEEK SCHEDULE ═══
-const DORDER=[1,2,3,4,5,6,0], DNAME={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat',0:'Sun'};
 function weekBounds(d){
   const x=d?new Date(d+'T12:00:00'):new Date();x.setHours(12,0,0,0);
   const off=(x.getDay()+6)%7, mon=new Date(x);mon.setDate(x.getDate()-off);
@@ -1629,7 +1707,7 @@ function renderToday(){
       <div class="notice boxed">Every pace in the next nine weeks is calculated from this one number.
         Right now it is an estimate.</div>
       <div class="btn-row" style="margin-top:20px">
-        <button class="b b-line" onclick="go('log')">Log the run</button>
+        <button class="b b-line" onclick="go('log');setTimeout(()=>startSession('tt5'),60)">Log the run</button>
         <button class="b b-hot" onclick="go('plan');setTimeout(()=>document.getElementById('tt-min')?.focus(),280)">Set my time</button></div>
       <div class="notice">Block opens <b>${fmtD(f.start)}</b> &mdash; ${d<=0?'today':d===1?'tomorrow':'in '+d+' days'}. Week one is ${f.vol} km.</div>
     </div>`;
