@@ -1,17 +1,16 @@
 {
   "name": "Nour Fitness",
   "short_name": "NourFit",
-  "description": "Personal PPL A/B Training Tracker",
+  "description": "Strength and half marathon training log",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0b0b0f",
-  "theme_color": "#00e676",
+  "background_color": "#09090A",
+  "theme_color": "#09090A",
   "orientation": "portrait",
   "icons": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230b0b0f'/><text y='140' x='96' text-anchor='middle' font-size='120' font-family='sans-serif'>⚡</text></svg>",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
-    }
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
