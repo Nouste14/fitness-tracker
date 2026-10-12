@@ -859,26 +859,28 @@ const ALT={};
 Object.entries(MG).forEach(([n,g])=>{(ALT[g]=ALT[g]||[]).push(n)});
 
 const PROG={
- fba:{label:'Full Body A',sub:'Strength — heavier',color:'#e8402a',kind:'lift',
-  tip:'Monday. Furthest point from Saturday’s long run, so heavy legs live here. Rest 2–3 min on the first three lifts. If Saturday wrecked you, drop the squat 20% — running comes first in this block.',
+ fba:{label:'Full Body A',sub:'Push + legs',color:'#e8402a',kind:'lift',
+  tip:'Monday — furthest point from Saturday\u2019s long run, so the one heavy leg movement lives here. Everything else is pushing: chest, shoulders, triceps. Rest 2\u20133 min on the squat and bench, 90s on the rest. If Saturday wrecked you, drop the squat 20% \u2014 running comes first in this block.',
   ex:[
-   {name:'Smith Machine Squat',sets:4,reps:'6–8',eq:'plate',note:'Matrix perfect-squat machine. Bar across upper traps, feet shoulder-width. Descend to parallel, drive through heels. Heavy but never grinding — leave 2 reps in reserve, you run tomorrow.'},
-   {name:'Barbell Bench Press',sets:4,reps:'6–8',eq:'barbell',note:'Flat bench, Olympic bar. Shoulder blades retracted, 2-second negative, touch chest, drive up. Your main upper-body strength lift.'},
-   {name:'Seated Cable Row (Close Grip)',sets:4,reps:'8–10',eq:'cable',note:'V-handle. Pull to belly button, squeeze shoulder blades 1 second. Counters the forward posture running builds.'},
-   {name:'Lying Leg Curl',sets:3,reps:'10–12',eq:'pin',note:'Hamstring work with zero spinal load — better than RDLs in a race block because you run long tomorrow. Hips pressed into the pad, 2-second lower.'},
-   {name:'Standing Calf Raise',sets:3,reps:'12–15',eq:'pin',note:'NON-NEGOTIABLE. Calves and Achilles take the most load in a half marathon and are your biggest injury risk. Full stretch at the bottom, 1-second squeeze at the top.'},
-   {name:'Plank',sets:3,reps:'45–60s',eq:'bodyweight',note:'A stable core stops your form collapsing in the last 5km. Straight line head to heels, glutes squeezed, breathe.'},
+   {name:'Smith Machine Squat',sets:3,reps:'6\u20138',eq:'plate',note:'Matrix perfect-squat machine. Bar across upper traps, feet shoulder-width. Descend to parallel, drive through heels. Three sets only \u2014 your running already loads the quads hard. Leave 2 reps in reserve.'},
+   {name:'Barbell Bench Press',sets:4,reps:'6\u20138',eq:'barbell',note:'Flat bench, Olympic bar. Shoulder blades retracted, 2-second negative, touch chest, drive up. Your main upper-body strength lift \u2014 this is where the size comes from.'},
+   {name:'Incline DB Press',sets:3,reps:'10\u201312',eq:'dumbbell',note:'30 degrees. Weight is per dumbbell. Press up and slightly inward, 2-second negative to a deep upper-chest stretch.'},
+   {name:'Machine Shoulder Press',sets:3,reps:'8\u201310',eq:'plate',note:'Matrix plate-loaded, 5.4kg base per side. Press to full lockout, control back to ear level. Front delts carry over to everything you press.'},
+   {name:'Tricep Pushdown',sets:3,reps:'12\u201315',eq:'cable',ss:1,note:'Elbows pinned to your ribs, full extension, squeeze 1 second. Superset with the overhead extension \u2014 no rest between, 90s after the pair.'},
+   {name:'Overhead Tricep Extension',sets:3,reps:'12\u201315',eq:'cable',ss:1,note:'Rope, pulley at the bottom, facing away. Hits the long head, which the pushdown barely touches \u2014 that is where tricep thickness lives. Deep stretch behind your head.'},
+   {name:'Standing Calf Raise',sets:3,reps:'15\u201320',eq:'pin',note:'NON-NEGOTIABLE. Calves and Achilles take the most load in a half marathon and are your single biggest injury risk. Full stretch at the bottom, 1-second squeeze at the top.'},
   ]},
- fbb:{label:'Full Body B',sub:'Upper + runner stability',color:'#3b82f6',kind:'lift',
-  tip:'Friday. Deliberately light on legs because you run long tomorrow morning. Upper body does the work; legs get single-leg stability only. Rest 90s throughout.',
+ fbb:{label:'Full Body B',sub:'Pull + arms',color:'#3b82f6',kind:'lift',
+  tip:'Friday \u2014 deliberately light on legs because you run long tomorrow morning. Everything is pulling: back, biceps, rear delts. Rest 2 min on the pulldown and row, 90s on the rest.',
   ex:[
-   {name:'Machine Shoulder Press',sets:4,reps:'8–10',eq:'plate',note:'Matrix plate-loaded, 5.4kg base per side. Press to full lockout, control back to ear level.'},
-   {name:'Lat Pulldown (Wide)',sets:4,reps:'8–10',eq:'cable',note:'Wide bar. Full stretch at the top, pull to upper chest leading with the elbows.'},
-   {name:'Incline DB Press',sets:4,reps:'10–12',eq:'dumbbell',note:'30 degrees. Weight is per dumbbell. 2-second negative to a deep stretch.'},
-   {name:'Bulgarian Split Squat',sets:3,reps:'10–12',eq:'dumbbell',note:'LIGHT — bodyweight or small dumbbells. Single-leg stability for running, not a strength lift. Fixes the imbalances that become knee pain at 15km.'},
-   {name:'Hammer Curl',sets:3,reps:'10–12',eq:'dumbbell',ss:1,note:'Neutral grip, per dumbbell. Superset with the pushdown — no rest between, 90s after the pair.'},
-   {name:'Tricep Pushdown',sets:3,reps:'12–15',eq:'cable',ss:1,note:'Elbows pinned, full extension. Second half of the superset.'},
-   {name:'Lateral Raise (Cable) - One Hand',sets:3,reps:'12–15',eq:'cable',note:'Side delts get almost no indirect work from pressing — without this they are the one muscle that goes backwards in this block. Pulley lowest, D-handle in the far hand, raise to ear height leading with the elbow.'},
+   {name:'Lat Pulldown (Wide)',sets:4,reps:'8\u201310',eq:'cable',note:'Wide bar. Full stretch at the top, pull to upper chest leading with the elbows. Lat width is what builds the V-taper.'},
+   {name:'Seated Cable Row (Close Grip)',sets:4,reps:'8\u201310',eq:'cable',note:'V-handle. Pull to belly button, squeeze shoulder blades 1 second. Back thickness, and it counters the forward posture running builds.'},
+   {name:'Lateral Raise (Cable) - One Hand',sets:3,reps:'12\u201315',eq:'cable',note:'Side delts get almost no indirect work from anything else \u2014 without this they are the one muscle that goes backwards. Pulley lowest, D-handle in the far hand, raise to ear height leading with the elbow.'},
+   {name:'EZ Bar Curl',sets:3,reps:'8\u201310',eq:'barbell',ss:1,note:'EZ bar, 10kg. Elbows pinned at your sides, no swing. Superset with hammer curls \u2014 straight into them, 90s after the pair.'},
+   {name:'Hammer Curl',sets:3,reps:'10\u201312',eq:'dumbbell',ss:1,note:'Neutral grip, per dumbbell. Targets the brachialis \u2014 the muscle under the bicep that actually adds arm thickness.'},
+   {name:'Bulgarian Split Squat',sets:3,reps:'10\u201312',eq:'dumbbell',note:'LIGHT \u2014 bodyweight or small dumbbells. Single-leg stability for running, not a strength lift. Fixes the left/right imbalance that becomes knee pain at 15km.'},
+   {name:'Lying Leg Curl',sets:3,reps:'10\u201312',eq:'pin',note:'Hamstring work with zero spinal load. Hips pressed into the pad, 2-second lower. Strong hamstrings are injury insurance for runners.'},
+   {name:'Plank',sets:3,reps:'45\u201360s',eq:'bodyweight',note:'A stable core stops your form collapsing in the last 5km of the race. Straight line head to heels, glutes squeezed, breathe.'},
   ]},
  rune:{label:'Easy Run',sub:'Aerobic base',color:'#22c55e',kind:'run',tip:'',ex:[]},
  runq:{label:'Quality Run',sub:'Tempo / intervals',color:'#f59e0b',kind:'run',tip:'',ex:[]},
@@ -916,6 +918,16 @@ function findProgEx(name){
   return null;
 }
 const todaySlot=()=>WEEKMAP[new Date().getDay()]||'rest';
+// Walk forward from a date to the next real session in the week.
+function nextSlotAfter(dateStr){
+  const base=new Date((dateStr||today())+'T12:00:00');
+  for(let i=1;i<=7;i++){
+    const d=new Date(base);d.setDate(base.getDate()+i);
+    const t=WEEKMAP[d.getDay()];
+    if(t&&t!=='rest')return {type:t,date:iso(d),days:i};
+  }
+  return null;
+}
 function nextType(){
   const t=todaySlot();
   if(t&&t!=='rest')return t;
@@ -1084,7 +1096,7 @@ function tickClock(){
   if(m&&actType&&typeKind(actType)==='lift'){
     const d=collect(); let done=0,vol=0;
     d.forEach(e=>(e.sets||[]).forEach(x=>{if(x.done&&!x.warmup){done++;vol+=vLoad(e.name,x.weight)*(+x.reps||0)}}));
-    m.innerHTML=`<b style="color:var(--txt)">${done}</b> sets · <b style="color:var(--txt)">${Math.round(vol).toLocaleString()}</b> kg`;
+    m.innerHTML=`<b style="color:var(--ink)">${done}</b> sets · <b style="color:var(--ink)">${Math.round(vol).toLocaleString()}</b> kg`;
   }
 }
 function stopClock(){
@@ -1106,7 +1118,7 @@ function restTick(){
   const n=document.getElementById('rest-n'),arc=document.getElementById('rest-arc');
   if(n)n.textContent=left>=60?`${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')}`:Math.ceil(left);
   if(arc){const p=restTotal?left/restTotal:0;arc.style.strokeDashoffset=113*(1-p);
-    arc.style.stroke=p>.5?'var(--accent)':p>.25?'var(--amber)':'var(--green)'}
+    arc.style.stroke=p>.5?'var(--hot)':p>.25?'var(--warn)':'var(--go)'}
   if(left<=0){restStop();buzz([160,80,160]);toast('Rest done — next set')}
   else restRAF=requestAnimationFrame(restTick);
 }
@@ -1433,7 +1445,7 @@ function swapSheet(i){
     <div class="sheet-p">${g||''} — same muscle group</div>
     <div style="display:grid;gap:6px;margin-top:18px">
       ${opts.length?opts.map(n=>`<button class="b b-line b-wide" style="justify-content:flex-start" onclick="doSwap(${i},'${attr(n)}')">${esc(n)}</button>`).join('')
-        :'<p style="color:var(--txt2);font-size:13px">No alternatives found.</p>'}
+        :'<p style="color:var(--ink2);font-size:13px">No alternatives found.</p>'}
     </div>`);
 }
 function doSwap(i,name){
@@ -1699,6 +1711,26 @@ function renderToday(){
   const main=document.getElementById('t-main');
   if(!blockOn()){
     const f=PLAN[0], d=Math.ceil((new Date(f.start+'T06:00:00')-new Date())/864e5);
+    const tt=[...sessions].reverse().find(x=>x.type==='tt5'&&x.run);
+    if(tt){
+      const first=WEEKMAP[new Date(f.start+'T12:00:00').getDay()];
+      const fp=PROG[first]||PROG.fba;
+      const fr=isRun(first)?planRun(f.start,first):null;
+      main.innerHTML=`<div class="band">
+        <div class="hero-eyebrow"><span class="pip" style="background:var(--go)"></span>
+          <span class="eyebrow">Time trial complete</span></div>
+        <div class="d9" style="font-size:56px">${hms(tt.run.sec)}<span class="hero-unit">${tt.run.dist} km</span></div>
+        <div style="font-size:14px;color:var(--ink2);margin-top:12px">${mmss(tt.run.pace)}/km &middot; logged ${fmtD(tt.date)}</div>
+        <div class="notice">Your pace zones are built on this. Easy runs are now <b>${zStr('easy')}</b> &mdash;
+          slower than feels natural, and that is exactly the point.</div>
+        <div class="hair"></div>
+        <div class="eyebrow" style="margin-bottom:9px">Up next &middot; ${fmtD(f.start)}</div>
+        <h1 class="hero-title" style="font-size:25px">${fr?esc(fr.t):fp.label}</h1>
+        <div style="font-size:13px;color:var(--ink2);margin-top:5px">${fr?zStr(fr.z):fp.sub}</div>
+        <div class="notice">Block opens ${d<=0?'today':d===1?'tomorrow':'in '+d+' days'}. Week one is ${f.vol} km.</div>
+      </div>`;
+      return;
+    }
     main.innerHTML=`<div class="band">
       <div class="hero-eyebrow"><span class="pip" style="background:var(--warn)"></span><span class="eyebrow">Before we begin</span></div>
       <h1 class="hero-title">5 km time trial</h1>
@@ -1719,10 +1751,27 @@ function renderToday(){
         <div class="hero-eyebrow"><span class="pip" style="background:var(--ink3)"></span><span class="eyebrow">Today</span></div>
         <h1 class="hero-title">Rest</h1>
         <p class="hero-sub">Recovery is when the adaptation happens. Eat, sleep, stay off your legs.</p></div>`;
+    } else if(logged){
+      // Today's work is done — show what's next instead of repeating the ask.
+      const nx=nextSlotAfter(today());
+      const np=nx?PROG[nx.type]:null;
+      const nr=nx&&isRun(nx.type)?planRun(nx.date,nx.type):null;
+      main.innerHTML=`<div class="band">
+        <div class="hero-eyebrow"><span class="pip" style="background:var(--go)"></span>
+          <span class="eyebrow">Today complete</span></div>
+        <div style="font-size:21px;font-weight:700;letter-spacing:-.025em">${pr?esc(pr.t):p.label}</div>
+        <div style="font-size:13px;color:var(--ink2);margin-top:4px">Logged &middot; nothing else due today</div>
+        ${np?`<div class="hair"></div>
+          <div class="eyebrow" style="margin-bottom:9px">Up next &middot; ${nx.days===1?'tomorrow':fmtD(nx.date)}</div>
+          <h1 class="hero-title" style="font-size:25px">${nr?esc(nr.t):np.label}</h1>
+          ${nr?`<div style="font-size:14px;font-weight:600;margin-top:9px">${zStr(nr.z)}<span style="color:var(--ink3);font-weight:450"> &middot; ${ZNAME[nr.z]}</span></div>`
+              :`<div style="font-size:13px;color:var(--ink2);margin-top:5px">${np.sub} &middot; ${(np.ex||[]).length} exercises</div>`}`:''}
+        <button class="b b-line b-wide" style="margin-top:20px" onclick="go('log')">Log another session</button>
+      </div>`;
     } else {
       main.innerHTML=`<div class="band">
         <div class="hero-eyebrow"><span class="pip" style="background:${p.color}"></span>
-          <span class="eyebrow">Today${logged?' &middot; complete':''}</span></div>
+          <span class="eyebrow">Today</span></div>
         <h1 class="hero-title">${pr?esc(pr.t):p.label}</h1>
         ${pr?`<div style="display:flex;align-items:baseline;gap:9px;margin-top:13px">
               <span style="font-size:15px;font-weight:650">${zStr(pr.z)}</span>
@@ -1730,7 +1779,7 @@ function renderToday(){
              <p class="hero-sub" style="margin-top:10px">${esc(pr.det)}</p>`
             :`<p class="hero-sub">${p.sub} &middot; ${(p.ex||[]).length} exercises</p>`}
         ${wk?`<div class="notice"><b>Week ${wk.wk}.</b> ${wk.note}</div>`:''}
-        <button class="b ${logged?'b-line':'b-hot'} b-wide" style="margin-top:20px" onclick="go('log')">${logged?'Log another session':'Start'}</button>
+        <button class="b b-hot b-wide" style="margin-top:20px" onclick="go('log')">Start</button>
       </div>`;
     }
   }
@@ -1983,10 +2032,10 @@ function drawStrength(){
     const f=pts[0],l=pts[pts.length-1],g=+(l.y-f.y).toFixed(1);
     i.innerHTML=`<div class="g3">
       <div class="sm-c"><div class="d sm-v">${l.w}kg</div><div class="sm-l">best set</div></div>
-      <div class="sm-c"><div class="d sm-v" style="color:var(--amber)">${l.y}kg</div><div class="sm-l">est 1RM</div></div>
-      <div class="sm-c"><div class="d sm-v" style="color:${g>=0?'var(--green)':'var(--accent)'}">${g>=0?'+':''}${g}</div><div class="sm-l">kg gained</div></div></div>
-      <div style="font-size:11.5px;color:var(--txt3);text-align:center;margin-top:9px">${pts.length} sessions logged</div>`;
-  } else i.innerHTML='<p style="font-size:13px;color:var(--txt2);text-align:center">Log this lift twice to see a trend.</p>';
+      <div class="sm-c"><div class="d sm-v" style="color:var(--warn)">${l.y}kg</div><div class="sm-l">est 1RM</div></div>
+      <div class="sm-c"><div class="d sm-v" style="color:${g>=0?'var(--go)':'var(--hot)'}">${g>=0?'+':''}${g}</div><div class="sm-l">kg gained</div></div></div>
+      <div style="font-size:11.5px;color:var(--ink3);text-align:center;margin-top:9px">${pts.length} sessions logged</div>`;
+  } else i.innerHTML='<p style="font-size:13px;color:var(--ink2);text-align:center">Log this lift twice to see a trend.</p>';
 }
 function statsRun(el){
   const runs=sessions.filter(s=>typeKind(s.type)==='run'&&s.run).sort((a,b)=>a.date>b.date?1:-1);
@@ -2076,20 +2125,20 @@ function renderPlan(){
   const wk=planWeek()||PLAN[0];
   document.getElementById('pl-body').innerHTML=`
     <div class="band"><div class="eyebrow" style="margin-bottom:10px">Race pace zones</div>
-      <p style="font-size:12.5px;color:var(--txt2);line-height:1.6;margin-bottom:14px">
+      <p style="font-size:12.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
         Every pace below derives from your 5k. Re-test every 3 weeks and update it.</p>
       <div class="g2" style="align-items:end">
         <div class="fld" style="margin:0"><label>5k time trial</label>
           <div style="display:flex;align-items:center;gap:5px">
             <input class="in" type="number" id="tt-min" inputmode="numeric" style="text-align:center" value="${Math.floor(tt5k/60)}"/>
-            <span style="color:var(--txt3);font-weight:700">:</span>
+            <span style="color:var(--ink3);font-weight:700">:</span>
             <input class="in" type="number" id="tt-sec" inputmode="numeric" style="text-align:center" value="${tt5k%60}"/>
           </div></div>
         <button class="b b-hot" onclick="saveTT()">Update</button></div>
       <div style="margin-top:14px">${Object.keys(ZMULT).map(k=>
-        `<div class="lr"><span><b style="color:var(--txt)">${ZNAME[k]}</b></span><b style="color:var(--accent)">${zStr(k)}</b></div>`).join('')}</div>
-      <div class="notice">Off a <b>${hms(tt5k)}</b> 5k your half potential is <b style="color:var(--accent)">${g(p.pot)}</b>.
-        With your longest run at <b>${p.longest||0} km</b>, a realistic race day is <b style="color:var(--accent)">${g(p.real)}</b>.
+        `<div class="lr"><span><b style="color:var(--ink)">${ZNAME[k]}</b></span><b style="color:var(--hot)">${zStr(k)}</b></div>`).join('')}</div>
+      <div class="notice">Off a <b>${hms(tt5k)}</b> 5k your half potential is <b style="color:var(--hot)">${g(p.pot)}</b>.
+        With your longest run at <b>${p.longest||0} km</b>, a realistic race day is <b style="color:var(--hot)">${g(p.real)}</b>.
         That gap closes as the long run grows. Target ${g(GOAL.target)} · stretch ${g(GOAL.stretch)}.</div>
     </div>
 
@@ -2105,27 +2154,27 @@ function renderPlan(){
         const cur=wk.wk===w.wk&&blockOn();
         const done=sessions.filter(s=>typeKind(s.type)==='run'&&s.date>=w.start&&s.date<=iso(e))
           .reduce((t,s)=>t+(+(s.run?.dist)||0),0);
-        return `<tr${cur?' style="background:var(--raised)"':''}>
-          <td class="" style="color:${cur?'var(--accent)':'var(--txt2)'}">${w.wk}${cur?' ◀':''}</td>
-          <td style="color:var(--txt2);font-size:11.5px">${fmtD(w.start).slice(5)} – ${fmtD(iso(e)).slice(5)}</td>
-          <td class="" style="text-align:right">${done>0?`<span style="color:var(--green)">${done.toFixed(0)}</span>/`:''}${w.vol}</td>
-          <td class="" style="text-align:right;color:var(--amber)">${w.r.l.d}</td></tr>`}).join('')}
+        return `<tr${cur?' style="background:var(--lift2)"':''}>
+          <td class="" style="color:${cur?'var(--hot)':'var(--ink2)'}">${w.wk}${cur?' ◀':''}</td>
+          <td style="color:var(--ink2);font-size:11.5px">${fmtD(w.start).slice(5)} – ${fmtD(iso(e)).slice(5)}</td>
+          <td class="" style="text-align:right">${done>0?`<span style="color:var(--go)">${done.toFixed(0)}</span>/`:''}${w.vol}</td>
+          <td class="" style="text-align:right;color:var(--warn)">${w.r.l.d}</td></tr>`}).join('')}
       </tbody></table>
-      <div style="font-size:11px;color:var(--txt3);margin-top:10px;line-height:1.5">Peak long run is 18 km — 85% of race distance. You never run the full 21 in training.</div></div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:10px;line-height:1.5">Peak long run is 18 km — 85% of race distance. You never run the full 21 in training.</div><div class="notice"><b>Run long by time, not distance.</b> At your current easy pace 18 km is roughly ${Math.round(18*(tt5k/5*1.33)/60)} minutes. If a long run passes <b>2h15</b>, stop there and log what you covered — time on feet builds the endurance, the extra minutes only add injury risk. As you get faster the distances fit back inside the window.</div></div>
 
     <div class="band"><div class="eyebrow" style="margin-bottom:10px">Equipment</div>
-      <p style="font-size:12.5px;color:var(--txt2);line-height:1.6;margin-bottom:12px">
+      <p style="font-size:12.5px;color:var(--ink2);line-height:1.6;margin-bottom:12px">
         How each machine is loaded — plate vs cable vs pin, base resistance, per-side. This is what makes %1RM and volume accurate.</p>
       <input class="in" id="eq-q" placeholder="Search exercises..." style="text-transform:none;margin-bottom:12px" oninput="renderEqList()"/>
       <div id="eq-list"></div></div>
 
     <div class="band"><div class="eyebrow" style="margin-bottom:10px">Backup</div>
-      <p style="font-size:12.5px;color:var(--txt2);line-height:1.6;margin-bottom:12px">
+      <p style="font-size:12.5px;color:var(--ink2);line-height:1.6;margin-bottom:12px">
         Everything in one small file — sessions, weight, equipment, zones.</p>
       <button class="b b-hot b-wide" style="margin-bottom:8px" onclick="exportData()">Save backup file</button>
       <label class="b b-line b-wide" style="cursor:pointer">Restore from file
         <input type="file" accept=".json,.txt" style="display:none" onchange="importFile(this)"/></label>
-      <div id="bk-size" style="font-size:11px;color:var(--txt3);text-align:center;margin-top:10px"></div></div>`;
+      <div id="bk-size" style="font-size:11px;color:var(--ink3);text-align:center;margin-top:10px"></div></div>`;
   renderEqList();
   buildBackup().then(t=>{const e=document.getElementById('bk-size');
     if(e)e.textContent=`${sessions.length} sessions · ${(t.length/1024).toFixed(1)} KB`}).catch(()=>{});
@@ -2150,10 +2199,10 @@ function renderEqList(){
     if(c.t==='plate')bits+=c.ps?' · per side':' · total';
     if(c.a)bits+=` · ${c.a}`;
     return `<div class="lr" style="cursor:pointer" onclick="equipSheet('${attr(n)}')">
-      <div style="min-width:0"><div style="font-size:13px;font-weight:600">${esc(n)}${custom?' <span style="color:var(--accent)">●</span>':''}</div>
-      <div style="font-size:11px;color:var(--txt2);margin-top:1px">${bits}</div></div>
-      <span style="color:var(--txt3)">›</span></div>`}).join('')
-    :'<p style="font-size:13px;color:var(--txt3)">No exercises found.</p>';
+      <div style="min-width:0"><div style="font-size:13px;font-weight:600">${esc(n)}${custom?' <span style="color:var(--hot)">●</span>':''}</div>
+      <div style="font-size:11px;color:var(--ink2);margin-top:1px">${bits}</div></div>
+      <span style="color:var(--ink3)">›</span></div>`}).join('')
+    :'<p style="font-size:13px;color:var(--ink3)">No exercises found.</p>';
 }
 // ── one-time repair from Nour's own session notes ──
 // Several machines were mis-typed in the old app. These are the ones he
@@ -2194,18 +2243,18 @@ function drawEqSheet(){
   if(['plate','smith','barbell'].includes(c.t))
     extra+=`<div class="fld"><label>${c.t==='plate'?'Starting resistance':'Bar weight'} (kg)</label>
       <input class="in" type="number" step="0.1" id="eq-s" inputmode="decimal" value="${c.s||''}" placeholder="0" oninput="eqD.s=parseFloat(this.value)||0;eqPreview()"/>
-      <div style="font-size:11px;color:var(--txt3);margin-top:5px;line-height:1.5">${c.t==='plate'
+      <div style="font-size:11px;color:var(--ink3);margin-top:5px;line-height:1.5">${c.t==='plate'
         ?'What the machine weighs with NO plates. Your notes: shoulder press 5.4, machine row 11.3, perfect squat 30.4.'
         :'Olympic bar 20kg · EZ 10kg. Counterbalanced Smith bars can be 0.'}</div></div>`;
   if(c.t==='plate')
     extra+=`<div class="lr" style="padding:12px 0"><div style="flex:1"><div style="font-size:13px;font-weight:600">I log plates per side</div>
-      <div style="font-size:11px;color:var(--txt2);margin-top:2px;line-height:1.45">On = you type one side's weight and it doubles. Off = combined total.</div></div>
+      <div style="font-size:11px;color:var(--ink2);margin-top:2px;line-height:1.45">On = you type one side's weight and it doubles. Off = combined total.</div></div>
       <button class="b ${c.ps?'b-hot':'b-quiet'} b-s" onclick="eqD.ps=!eqD.ps;drawEqSheet()">${c.ps?'ON':'OFF'}</button></div>`;
   if(['cable','pin'].includes(c.t))
     extra+=`<div class="fld"><label>Attachment</label><select class="in" onchange="eqD.a=this.value;eqPreview()">
       ${ATTACH.map(a=>`<option value="${a}" ${c.a===a?'selected':''}>${a||'— none —'}</option>`).join('')}</select></div>`;
   extra+=`<div class="lr" style="padding:12px 0"><div style="flex:1"><div style="font-size:13px;font-weight:600">One limb at a time</div>
-      <div style="font-size:11px;color:var(--txt2);margin-top:2px">Single-arm or single-leg. Reps logged are per limb.</div></div>
+      <div style="font-size:11px;color:var(--ink2);margin-top:2px">Single-arm or single-leg. Reps logged are per limb.</div></div>
       <button class="b ${c.u?'b-hot':'b-quiet'} b-s" onclick="eqD.u=!eqD.u;drawEqSheet()">${c.u?'ON':'OFF'}</button></div>`;
   document.getElementById('sheet-body').innerHTML=`
     <div class="sheet-h">${esc(eqName)}</div>
@@ -2214,7 +2263,7 @@ function drawEqSheet(){
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
         ${Object.keys(EQ).map(k=>`<button class="b b-s ${c.t===k?'b-hot':'b-quiet'}" style="font-size:10.5px;padding:0 4px;min-height:40px" onclick="setEqType('${k}')">${EQ[k].l}</button>`).join('')}
       </div>
-      <div style="font-size:11.5px;color:var(--txt2);margin-top:8px">${EQ[c.t].h}</div></div>
+      <div style="font-size:11.5px;color:var(--ink2);margin-top:8px">${EQ[c.t].h}</div></div>
     ${extra}
     <div class="notice" id="eq-prev"></div>
     <div style="display:flex;gap:8px;margin-top:16px">
@@ -2229,8 +2278,8 @@ function eqPreview(){
   const old=equipCfg[eqName];equipCfg[eqName]=eqD;
   const s=sLoad(eqName,sample),v=vLoad(eqName,sample);
   if(old)equipCfg[eqName]=old;else delete equipCfg[eqName];
-  let t=`Log <b>${sample}kg</b> → counts as <b style="color:var(--accent)">${s}kg</b> for strength`;
-  if(v!==s)t+=` and <b style="color:var(--accent)">${v}kg</b> for volume`;
+  let t=`Log <b>${sample}kg</b> → counts as <b style="color:var(--hot)">${s}kg</b> for strength`;
+  if(v!==s)t+=` and <b style="color:var(--hot)">${v}kg</b> for volume`;
   if(eqD.t==='plate'&&eqD.ps)t+=`<br><span style="font-size:11px">${sample} per side ×2 = ${sample*2}${eqD.s?` + ${eqD.s} base`:''} = ${s}kg</span>`;
   el.innerHTML=t;
 }
