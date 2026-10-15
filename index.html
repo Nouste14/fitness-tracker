@@ -288,7 +288,12 @@ select.in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
   background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(18px);
   border-top:1px solid var(--rule);padding:11px 20px;display:none}
 .sb.on{display:block}
-.sb-in{max-width:540px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.sb-in{max-width:540px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.sb-jump{flex:1;min-width:0;display:flex;align-items:center;gap:16px;background:none;
+  border:0;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.sb-jump:active{opacity:.55}
+#sb-fin{flex:none;padding:0 18px;min-height:40px}
 .sb-c{font-family:'Archivo',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.03em;
   min-width:56px;font-variant-numeric:tabular-nums}
 .sb-m{flex:1;min-width:0;font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
@@ -531,8 +536,11 @@ select.in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
 </div>
 
 <div class="sb" id="sessbar"><div class="sb-in">
-  <div class="sb-c" id="sb-clock">0:00</div>
-  <div class="sb-m" id="sb-meta"></div>
+  <button class="sb-jump" id="sb-jump" onclick="jumpNext()" aria-label="Jump to next set">
+    <div class="sb-c" id="sb-clock">0:00</div>
+    <div class="sb-m" id="sb-meta"></div>
+  </button>
+  <button class="b b-hot b-s" id="sb-fin" onclick="finishLift()">Finish</button>
 </div></div>
 
 <nav class="nav"><div class="nav-in">
@@ -804,8 +812,20 @@ const PLAN=[
 //  Change this one object and the picker order, day labels, week
 //  schedule and "today" suggestion all follow automatically.
 // ─────────────────────────────────────────────────────────────
-const WEEKMAP={1:'fba',2:'runq',3:'rest',4:'rune',5:'fbb',6:'runl',0:'rest'};
+// 'lift' is a SLOT, not a session. Which of Push/Pull/Legs lands in it is
+// decided by the rotation below — by what you last actually did, never by
+// what day of the week it happens to be.
+const WEEKMAP={1:'lift',2:'runq',3:'lift',4:'rune',5:'lift',6:'runl',0:'rest'};
+const CYCLE=['push','pull','legs'];
+// Old session types still count towards the rotation so history keeps working.
+const CYCLE_ALIAS={fba:'push',fbb:'pull','fullbody-a':'push','fullbody-b':'pull',
+  'push-a':'push','push-b':'push','pull-a':'pull','pull-b':'pull',
+  'legs-a':'legs','legs-b':'legs',upper:'pull','upper-a':'pull','upper-b':'pull','upper-c':'pull'};
+const asCycle=t=>CYCLE_ALIAS[t]||t;
 const DORDER=[1,2,3,4,5,6,0];
+// Derived, so changing WEEKMAP can never leave a count behind.
+const WK_LIFTS=Object.values(WEEKMAP).filter(x=>x==='lift').length;
+const WK_RUNS=Object.values(WEEKMAP).filter(x=>/^run/.test(x)).length;
 const DNAME={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat',0:'Sun'};
 const RUNS=['rune','runq','runl','tt5'];
 const isRun=t=>RUNS.includes(t);
@@ -823,8 +843,9 @@ function planRun(d,type){
 const daysToRace=()=>Math.ceil((new Date(RACE.date+'T05:00:00')-new Date())/864e5);
 
 // ═══════════════════════════════════════════════════════════════
-//  PROGRAM — 2 full-body lifts + 3 runs, 5 days
-//  Mon FBA · Tue quality · Wed rest · Thu easy · Fri FBB · Sat long
+//  PROGRAM — Push / Pull / Legs + 3 runs, 6 days, Sunday off
+//  Mon lift · Tue quality run · Wed lift · Thu easy run · Fri lift · Sat long run
+//  Which lift lands on which day comes from the rotation, not from this map.
 // ═══════════════════════════════════════════════════════════════
 const MG={
  'Barbell Bench Press':'Chest','Incline DB Press':'Chest','Machine Chest Press':'Chest','Pec Deck':'Chest',
@@ -859,29 +880,38 @@ const ALT={};
 Object.entries(MG).forEach(([n,g])=>{(ALT[g]=ALT[g]||[]).push(n)});
 
 const PROG={
- fba:{label:'Full Body A',sub:'Push + legs',color:'#e8402a',kind:'lift',
-  tip:'Monday — furthest point from Saturday\u2019s long run, so the one heavy leg movement lives here. Everything else is pushing: chest, shoulders, triceps. Rest 2\u20133 min on the squat and bench, 90s on the rest. If Saturday wrecked you, drop the squat 20% \u2014 running comes first in this block.',
+ push:{label:'Push',sub:'Chest, shoulders, triceps',color:'#e8402a',kind:'lift',
+  tip:'Monday \u2014 straight off a rest day, so this is when you are strongest. No legs at all, which means you can push the bench hard without touching tomorrow\u2019s quality run. Rest 2\u20133 min on the bench, 90s on everything else.',
   ex:[
-   {name:'Smith Machine Squat',sets:3,reps:'6\u20138',eq:'plate',note:'Matrix perfect-squat machine. Bar across upper traps, feet shoulder-width. Descend to parallel, drive through heels. Three sets only \u2014 your running already loads the quads hard. Leave 2 reps in reserve.'},
-   {name:'Barbell Bench Press',sets:4,reps:'6\u20138',eq:'barbell',note:'Flat bench, Olympic bar. Shoulder blades retracted, 2-second negative, touch chest, drive up. Your main upper-body strength lift \u2014 this is where the size comes from.'},
-   {name:'Incline DB Press',sets:3,reps:'10\u201312',eq:'dumbbell',note:'30 degrees. Weight is per dumbbell. Press up and slightly inward, 2-second negative to a deep upper-chest stretch.'},
-   {name:'Machine Shoulder Press',sets:3,reps:'8\u201310',eq:'plate',note:'Matrix plate-loaded, 5.4kg base per side. Press to full lockout, control back to ear level. Front delts carry over to everything you press.'},
-   {name:'Tricep Pushdown',sets:3,reps:'12\u201315',eq:'cable',ss:1,note:'Elbows pinned to your ribs, full extension, squeeze 1 second. Superset with the overhead extension \u2014 no rest between, 90s after the pair.'},
-   {name:'Overhead Tricep Extension',sets:3,reps:'12\u201315',eq:'cable',ss:1,note:'Rope, pulley at the bottom, facing away. Hits the long head, which the pushdown barely touches \u2014 that is where tricep thickness lives. Deep stretch behind your head.'},
-   {name:'Standing Calf Raise',sets:3,reps:'15\u201320',eq:'pin',note:'NON-NEGOTIABLE. Calves and Achilles take the most load in a half marathon and are your single biggest injury risk. Full stretch at the bottom, 1-second squeeze at the top.'},
+   {name:'Barbell Bench Press',sets:4,reps:'6\u20138',eq:'barbell',note:'Your main upper-body strength lift \u2014 this is where chest size comes from. Shoulder blades pinned back, 2-second negative, touch the chest, drive up. Add 2.5kg whenever you hit 8 reps on all four sets.'},
+   {name:'Incline DB Press',sets:3,reps:'10\u201312',eq:'dumbbell',note:'Bench at 30 degrees. Weight is per dumbbell. Press up and slightly inward, 2-second negative into a deep upper-chest stretch. Upper chest is what makes a chest look full in a shirt.'},
+   {name:'Pec Deck',sets:3,reps:'12\u201315',eq:'pin',note:'Pure chest isolation with no triceps involved, so you can finish the chest off after pressing has fried your arms. Squeeze for a full second with the handles together.'},
+   {name:'Machine Shoulder Press',sets:3,reps:'8\u201310',eq:'plate',note:'Matrix plate-loaded, 5.4kg base per side. Press to full lockout, control back down to ear level. Front delts carry over into every press you do.'},
+   {name:'Lateral Raise (Cable) - One Hand',sets:3,reps:'12\u201315',eq:'cable',note:'Side delts are what give shoulders width, and nothing else in this programme hits them. Pulley at the lowest setting, D-handle in the far hand, raise to ear height leading with the elbow. Light weight, strict form.'},
+   {name:'Tricep Pushdown',sets:3,reps:'12\u201315',eq:'cable',ss:1,note:'Elbows pinned to your ribs, full extension, 1-second squeeze. Superset with the overhead extension \u2014 no rest between the two, 90s after the pair.'},
+   {name:'Overhead Tricep Extension',sets:3,reps:'12\u201315',eq:'cable',ss:1,note:'Rope, pulley at the bottom, facing away from the stack. Hits the long head, which the pushdown barely touches \u2014 that is where tricep thickness actually lives. Deep stretch behind the head.'},
   ]},
- fbb:{label:'Full Body B',sub:'Pull + arms',color:'#3b82f6',kind:'lift',
-  tip:'Friday \u2014 deliberately light on legs because you run long tomorrow morning. Everything is pulling: back, biceps, rear delts. Rest 2 min on the pulldown and row, 90s on the rest.',
+ pull:{label:'Pull',sub:'Back, biceps, rear delts',color:'#3b82f6',kind:'lift',
+  tip:'Friday \u2014 all upper body, deliberately zero legs, because you run long tomorrow morning. This is also the session that fixes the hunched-forward posture distance running builds. Rest 2 min on the pulldown and rows, 90s on the rest.',
   ex:[
-   {name:'Lat Pulldown (Wide)',sets:4,reps:'8\u201310',eq:'cable',note:'Wide bar. Full stretch at the top, pull to upper chest leading with the elbows. Lat width is what builds the V-taper.'},
-   {name:'Seated Cable Row (Close Grip)',sets:4,reps:'8\u201310',eq:'cable',note:'V-handle. Pull to belly button, squeeze shoulder blades 1 second. Back thickness, and it counters the forward posture running builds.'},
-   {name:'Lateral Raise (Cable) - One Hand',sets:3,reps:'12\u201315',eq:'cable',note:'Side delts get almost no indirect work from anything else \u2014 without this they are the one muscle that goes backwards. Pulley lowest, D-handle in the far hand, raise to ear height leading with the elbow.'},
-   {name:'EZ Bar Curl',sets:3,reps:'8\u201310',eq:'barbell',ss:1,note:'EZ bar, 10kg. Elbows pinned at your sides, no swing. Superset with hammer curls \u2014 straight into them, 90s after the pair.'},
-   {name:'Hammer Curl',sets:3,reps:'10\u201312',eq:'dumbbell',ss:1,note:'Neutral grip, per dumbbell. Targets the brachialis \u2014 the muscle under the bicep that actually adds arm thickness.'},
-   {name:'Bulgarian Split Squat',sets:3,reps:'10\u201312',eq:'dumbbell',note:'LIGHT \u2014 bodyweight or small dumbbells. Single-leg stability for running, not a strength lift. Fixes the left/right imbalance that becomes knee pain at 15km.'},
-   {name:'Lying Leg Curl',sets:3,reps:'10\u201312',eq:'pin',note:'Hamstring work with zero spinal load. Hips pressed into the pad, 2-second lower. Strong hamstrings are injury insurance for runners.'},
-   {name:'Plank',sets:3,reps:'45\u201360s',eq:'bodyweight',note:'A stable core stops your form collapsing in the last 5km of the race. Straight line head to heels, glutes squeezed, breathe.'},
+   {name:'Lat Pulldown (Wide)',sets:4,reps:'8\u201310',eq:'cable',note:'Wide bar. Full stretch at the top, pull to the upper chest leading with the elbows, not the hands. Lat width is what builds the V-taper.'},
+   {name:'Seated Cable Row (Close Grip)',sets:4,reps:'8\u201310',eq:'cable',note:'V-handle. Pull to the belly button, squeeze the shoulder blades for a full second. Back thickness, and it directly counters running posture.'},
+   {name:'Machine Row',sets:3,reps:'10\u201312',eq:'plate',note:'Matrix plate-loaded, 11.3kg base per side. Chest against the pad so your lower back does nothing. A third row angle \u2014 back responds better to variety than any other muscle.'},
+   {name:'Face Pulls',sets:3,reps:'15\u201320',eq:'cable',note:'Rope at face height, pull to your forehead and flare the elbows wide. Rear delts and rotator cuff. This is prehab as much as training \u2014 it keeps your shoulders healthy while you bench twice a week.'},
+   {name:'EZ Bar Curl',sets:3,reps:'8\u201310',eq:'barbell',ss:2,note:'EZ bar, 10kg bar weight. Elbows pinned at your sides, no swinging. Superset straight into hammer curls, 90s after the pair.'},
+   {name:'Hammer Curl',sets:3,reps:'10\u201312',eq:'dumbbell',ss:2,note:'Neutral grip, weight per dumbbell. Targets the brachialis, the muscle underneath the bicep \u2014 that is what adds actual arm thickness rather than just a peak.'},
   ]},
+ legs:{label:'Legs',sub:'Runner\u2019s legs \u2014 short and specific',color:'#f59e0b',kind:'lift',
+  tip:'Wednesday \u2014 three days clear of Saturday\u2019s long run, the day after your quality run so the hard days sit together and the easy days stay easy. This session is SHORT on purpose: your running already gives you more quad volume than any leg day could, so the job here is hamstrings, calves and single-leg stability \u2014 the three things that break down at 15km. If your legs are still heavy from Tuesday, drop the Smith squat and keep the rest.',
+  ex:[
+   {name:'Smith Machine Squat',sets:3,reps:'6\u20138',eq:'plate',note:'Matrix perfect-squat machine, 30.4kg base. Bar across the upper traps, feet shoulder-width, down to parallel, drive through the heels. Three sets only, and stop 2 reps short of failure \u2014 running comes first in this block.'},
+   {name:'Lying Leg Curl',sets:4,reps:'10\u201312',eq:'pin',note:'Hamstrings with zero spinal load. Hips pressed into the pad, 2-second lower. Strong hamstrings are the single best insurance against the pulls and knee pain that end half marathon blocks.'},
+   {name:'Bulgarian Split Squat',sets:3,reps:'10\u201312',eq:'dumbbell',note:'LIGHT \u2014 bodyweight or small dumbbells. This is single-leg stability, not a strength lift. Running is a one-legged sport and this is what fixes the left/right imbalance that turns into knee pain late in a long run.'},
+   {name:'Standing Calf Raise',sets:4,reps:'15\u201320',eq:'pin',note:'NON-NEGOTIABLE. Straight-leg, so this is the gastrocnemius. Calves and the Achilles take more load than anything else in a half marathon and are your biggest injury risk. Full stretch at the bottom, 1-second squeeze at the top.'},
+   {name:'Seated Calf Raise',sets:3,reps:'15\u201320',eq:'pin',note:'Bent-knee, which shifts the work to the soleus \u2014 a different muscle the standing raise barely reaches, and the one that does most of the work at easy running pace. Skipping this is why runners get calf problems despite doing calf raises.'},
+   {name:'Hanging Leg Raise',sets:3,reps:'10\u201315',eq:'bodyweight',note:'A core that holds up stops your form collapsing in the last 5km, which is worth more than any amount of pace work. Slow and controlled, no swinging. If you cannot manage 10, do knee raises instead.'},
+  ]},
+ lift:{label:'Lift',sub:'Push / Pull / Legs',color:'#e8402a',kind:'lift',tip:'',ex:[]},
  rune:{label:'Easy Run',sub:'Aerobic base',color:'#22c55e',kind:'run',tip:'',ex:[]},
  runq:{label:'Quality Run',sub:'Tempo / intervals',color:'#f59e0b',kind:'run',tip:'',ex:[]},
  runl:{label:'Long Run',sub:'Endurance',color:'#8b5cf6',kind:'run',tip:'',ex:[]},
@@ -892,15 +922,32 @@ const PROG={
 // Ordered by the training week, not alphabetically — Mon → Sat.
 // Derived from WEEKMAP, never hand-written. A session that appears on
 // more than one day is listed once, under the first day it falls on.
-const PICK=DORDER.map(d=>WEEKMAP[d])
-  .filter((t,i,a)=>t&&t!=='rest'&&PROG[t]&&a.indexOf(t)===i);
-const PICK_DAY=DORDER.reduce((m,d)=>{
-  const t=WEEKMAP[d];
-  if(t&&t!=='rest'&&!m[t])m[t]=DNAME[d];
+// Walk this week Mon->Sun, resolving each lift slot through the rotation, so
+// the log list is always in the order the sessions will actually happen.
+function weekSlots(){
+  const [mon]=weekBounds();
+  const m=new Date(mon+'T12:00:00');
+  return DORDER.map((dow,i)=>{
+    const d=new Date(m);d.setDate(m.getDate()+i);
+    const ds=iso(d);
+    return {dow,ds,day:DNAME[dow],type:slotOn(dow,ds)};
+  });
+}
+function pickOrder(){
+  const out=[];
+  weekSlots().forEach(s=>{if(s.type!=='rest'&&s.type!=='lift'&&PROG[s.type]&&!out.includes(s.type))out.push(s.type)});
+  // any cycle lift that did not surface this week still belongs in the list
+  CYCLE.forEach(c=>{if(!out.includes(c))out.push(c)});
+  return out;
+}
+function pickDay(){
+  const m={};
+  weekSlots().forEach(s=>{if(s.type!=='rest'&&s.type!=='lift'&&!m[s.type])m[s.type]=s.day});
   return m;
-},{});
+}
 // legacy types so old history still renders
-const LEGACY_LABEL={'push-a':'Push A','push-b':'Push B','pull-a':'Pull A','pull-b':'Pull B',
+const LEGACY_LABEL={fba:'Full Body A',fbb:'Full Body B',
+ 'push-a':'Push A','push-b':'Push B','pull-a':'Pull A','pull-b':'Pull B',
  'legs-a':'Legs A','legs-b':'Legs B','upper-a':'Upper A','upper-b':'Upper B','upper-c':'Upper C',
  'push':'Push','pull':'Pull','legs':'Legs','upper':'Upper','fullbody-a':'Full Body A','fullbody-b':'Full Body B'};
 function typeLabel(t){return PROG[t]?PROG[t].label:(LEGACY_LABEL[t]||t)}
@@ -917,23 +964,64 @@ function findProgEx(name){
   }
   return null;
 }
-const todaySlot=()=>WEEKMAP[new Date().getDay()]||'rest';
+// ── LIFT ROTATION ───────────────────────────────────────────────
+// Index in CYCLE of the lift that is due next, derived from the last lift
+// actually logged. Train Pull on a rest day and Legs becomes next — the
+// rotation follows you, you do not have to follow the calendar.
+function liftCursor(){
+  for(let i=sessions.length-1;i>=0;i--){
+    const k=CYCLE.indexOf(asCycle(sessions[i].type));
+    if(k>=0)return (k+1)%CYCLE.length;
+  }
+  return 0;
+}
+// Project the rotation on to a future date: every lift slot standing between
+// now and then that has not been logged consumes one turn.
+function liftAt(dateStr){
+  const t=today();
+  let idx=liftCursor();
+  if(!dateStr||dateStr<=t){
+    // A lift already logged today means today's slot is spent.
+    return CYCLE[idx];
+  }
+  const a=new Date(t+'T12:00:00'), b=new Date(dateStr+'T12:00:00');
+  for(const d=new Date(a); d<b; d.setDate(d.getDate()+1)){
+    const ds=iso(d);
+    if(WEEKMAP[d.getDay()]!=='lift')continue;
+    if(sessions.some(s=>s.date===ds&&typeKind(s.type)==='lift'))continue;
+    idx=(idx+1)%CYCLE.length;
+  }
+  return CYCLE[idx];
+}
+// Resolve a WEEKMAP slot into a real session type for a given date.
+// A day in the past reports what was actually trained, never a projection —
+// the schedule view has to be a record, not a guess.
+function slotOn(dow,ds){
+  const t=WEEKMAP[dow];
+  if(t!=='lift')return t||'rest';
+  if(ds){
+    const done=sessions.find(s=>s.date===ds&&typeKind(s.type)==='lift');
+    if(done)return asCycle(done.type);
+    if(ds<today())return 'lift';         // a lift slot that went unfilled
+  }
+  return liftAt(ds);
+}
+const todaySlot=()=>slotOn(new Date().getDay(),today());
 // Walk forward from a date to the next real session in the week.
 function nextSlotAfter(dateStr){
   const base=new Date((dateStr||today())+'T12:00:00');
   for(let i=1;i<=7;i++){
     const d=new Date(base);d.setDate(base.getDate()+i);
-    const t=WEEKMAP[d.getDay()];
-    if(t&&t!=='rest')return {type:t,date:iso(d),days:i};
+    const ds=iso(d), t=slotOn(d.getDay(),ds);
+    if(t&&t!=='rest')return {type:t,date:ds,days:i};
   }
   return null;
 }
 function nextType(){
   const t=todaySlot();
   if(t&&t!=='rest')return t;
-  const d=new Date().getDay();
-  for(let i=1;i<=7;i++){const n=WEEKMAP[(d+i)%7];if(n&&n!=='rest')return n}
-  return 'rune';
+  const n=nextSlotAfter(today());
+  return n?n.type:'rune';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1023,13 +1111,14 @@ function buildPicker(){
   const d=logDate(), nx=nextType(), isToday=d===today();
   // Before the block opens the only thing that matters is the time trial,
   // so it leads. Afterwards it drops to the bottom as a re-test option.
-  const order=blockOn(d)?[...PICK,'tt5']:['tt5',...PICK];
+  const PK=pickOrder(), PKD=pickDay();
+  const order=blockOn(d)?[...PK,'tt5']:['tt5',...PK];
   document.getElementById('l-grid').innerHTML=
     order.map(t=>{
       const p=PROG[t], pr=isRun(t)?planRun(d,t):null;
       const sug=t==='tt5' ? !blockOn(d) : (blockOn(d)&&isToday&&t===nx);
       const sub=pr?`${pr.d} km &middot; ${esc(pr.t.replace(/^[\d.]+\s*km\s*/,'')||ZNAME[pr.z])}`:p.sub;
-      const day=PICK_DAY[t];
+      const day=PKD[t];
       return `<button class="pk-i" onclick="startSession('${t}')">
         <span class="pk-bar" style="background:${p.color}"></span>
         <span class="pk-m">${day?`<span class="pk-day">${day}</span>`:''}<span class="pk-t">${p.label}</span><span class="pk-s">${sub}</span></span>
@@ -1085,6 +1174,8 @@ function hasEntries(){
 function startClock(){
   actStart=actStart||Date.now();
   document.getElementById('sessbar').classList.add('on');
+  const fb=document.getElementById('sb-fin');
+  if(fb)fb.style.display=(actType&&typeKind(actType)==='lift')?'':'none';
   tickClock();clearInterval(clockT);clockT=setInterval(tickClock,1000);
 }
 function tickClock(){
@@ -1096,7 +1187,10 @@ function tickClock(){
   if(m&&actType&&typeKind(actType)==='lift'){
     const d=collect(); let done=0,vol=0;
     d.forEach(e=>(e.sets||[]).forEach(x=>{if(x.done&&!x.warmup){done++;vol+=vLoad(e.name,x.weight)*(+x.reps||0)}}));
-    m.innerHTML=`<b style="color:var(--ink)">${done}</b> sets · <b style="color:var(--ink)">${Math.round(vol).toLocaleString()}</b> kg`;
+    const total=d.reduce((a,e)=>a+(e.sets||[]).filter(x=>!x.warmup).length,0);
+    m.innerHTML=`<b style="color:var(--ink)">${done}/${total}</b> sets · `
+      +`<b style="color:var(--ink)">${Math.round(vol).toLocaleString()}</b> kg`
+      +`<span style="color:var(--ink3)"> · tap to jump</span>`;
   }
 }
 function stopClock(){
@@ -1104,6 +1198,27 @@ function stopClock(){
   const mins=actStart?Math.round((Date.now()-actStart)/6e4):0;
   actStart=null;document.getElementById('sessbar').classList.remove('on');
   return mins;
+}
+
+// Scroll to the first set that has not been ticked yet. With seven exercises
+// on screen, finding your place again after a rest is the most repeated
+// annoyance in the whole app.
+function jumpNext(){
+  for(let i=0;i<exList.length;i++){
+    const tb=document.getElementById('sb-'+i);
+    if(!tb)continue;
+    const rows=[...tb.children];
+    for(let s=0;s<rows.length;s++){
+      const ck=rows[s].querySelector('.ck');
+      if(ck&&!ck.classList.contains('on')){
+        rows[s].scrollIntoView({behavior:'smooth',block:'center'});
+        const w=document.getElementById(`w-${i}-${s}`);
+        if(w)setTimeout(()=>w.focus({preventScroll:true}),320);
+        return;
+      }
+    }
+  }
+  toast('Every set is ticked \u2014 finish the session');
 }
 
 // ── rest timer (absolute end time: survives backgrounding) ──
@@ -1137,16 +1252,21 @@ function smartRest(name){
 
 // ── exercise rendering ──
 function renderExercises(){
-  const c=document.getElementById('l-exs');
-  c.innerHTML=exList.map((ex,i)=>exCard(ex,i)).join('');
-  exList.forEach((ex,i)=>{
-    const n=(ex.sets||ex.setCount||3);
-    const tb=document.getElementById('sb-'+i);
-    if(!tb)return;
-    const cnt=typeof n==='number'?n:3;
-    for(let s=0;s<cnt;s++)addRow(i,s,ex._pre&&ex._pre[s]);
-  });
-  attachSwipe();
+  RENDERING++;
+  try{
+    const c=document.getElementById('l-exs');
+    c.innerHTML=exList.map((ex,i)=>exCard(ex,i)).join('');
+    exList.forEach((ex,i)=>{
+      const tb=document.getElementById('sb-'+i);
+      if(!tb)return;
+      const n=(ex.sets||ex.setCount||3), plan=typeof n==='number'?n:3;
+      const pre=ex._pre||[];
+      // never fewer rows than the user actually has data for
+      const cnt=Math.max(plan,pre.length);
+      for(let s=0;s<cnt;s++)addRow(i,s,pre[s]);
+    });
+    attachSwipe();
+  } finally { RENDERING--; }
 }
 function exCard(ex,i){
   const eq=getEq(ex.name), eqm=EQ[eq.t]||EQ.cable;
@@ -1177,7 +1297,7 @@ function exCard(ex,i){
       <button class="addrow" onclick="addRow(${i})">Add set</button>
     </div>
     <div class="plts" id="pc-${i}" style="display:none">
-      <span class="plts-l">Plates per side</span><span id="pl-${i}" style="display:contents"></span></div>
+      <span class="plts-l">${eq.t==='plate'&&eq.ps?`Plates per side &middot; +${eq.s||0}kg base`:'Plates per side'}</span><span id="pl-${i}" style="display:contents"></span></div>
   </div>`;
 }
 function overloadHint(name,i){
@@ -1200,20 +1320,24 @@ function addRow(ei,si,pre){
   const prevTx=p?`${p.w||'–'}${p.w?'kg':''} × ${p.r||'–'}`:'—';
   const d=document.createElement('div');
   d.className='sw';d.id='sw-'+ei+'-'+si;
+  // Everything the row remembers is written into the markup here, synchronously.
+  // Nothing may be applied on a later tick: a timer that has not fired yet is
+  // data the user can lose by locking the phone.
+  const wu=!!pre?.warmup, dn=!!pre?.done, rp=pre?.rpe||'';
   d.innerHTML=`<div class="swz">
    <div class="st-wipe">Delete</div>
-   <div class="st-r" id="sr-${ei}-${si}">
-    <div class="st-n" id="sn-${ei}-${si}" onclick="toggleWU(${ei},${si})" title="Tap for warm-up">${si+1}</div>
+   <div class="st-r${dn?' done':''}${wu?' wu':''}" id="sr-${ei}-${si}">
+    <div class="st-n" id="sn-${ei}-${si}" onclick="toggleWU(${ei},${si})" title="Tap for warm-up">${wu?'W':si+1}</div>
     <div class="st-p${p?' live':''}" ${p?`onclick="usePrev(${ei},${si},'${attr(p.w)}','${attr(p.r)}')"`:''}>${prevTx}</div>
     <input class="nf" type="number" inputmode="decimal" step="0.5" id="w-${ei}-${si}" placeholder="${p?.w??'0'}" value="${pre?.weight??''}" oninput="onInput(${ei},${si})"/>
     <input class="nf" type="number" inputmode="numeric" id="r-${ei}-${si}" placeholder="${p?.r??'0'}" value="${pre?.reps??''}" oninput="onInput(${ei},${si})"/>
-    <button class="ck" id="t-${ei}-${si}" onclick="tickSet(${ei},${si})" aria-label="Done">
+    <button class="ck${dn?' on':''}" id="t-${ei}-${si}" onclick="tickSet(${ei},${si})" aria-label="Done">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
    </div></div>
    <div class="rp" id="rp-${ei}-${si}">
      <span class="rp-l">RPE</span>
-     ${[6,7,8,9,10].map(v=>`<button class="rp-b" onclick="setRPE(${ei},${si},${v})">${v}</button>`).join('')}
-     <input type="hidden" id="rv-${ei}-${si}"/>
+     ${[6,7,8,9,10].map(v=>`<button class="rp-b${+rp===v?' on':''}" onclick="setRPE(${ei},${si},${v})">${v}</button>`).join('')}
+     <input type="hidden" id="rv-${ei}-${si}" value="${rp}"/>
    </div>`;
   tb.appendChild(d);
   attachSwipe(d);
@@ -1233,15 +1357,27 @@ function toggleWU(ei,si){
 }
 function onInput(ei,si){
   const name=exList[ei]?.name||'';
-  if(getEq(name).t==='barbell')renderPlates(ei,document.getElementById(`w-${ei}-${si}`)?.value);
+  renderPlates(ei,document.getElementById(`w-${ei}-${si}`)?.value);
   saveDraft();
 }
 function renderPlates(ei,kg){
   const box=document.getElementById('pc-'+ei),list=document.getElementById('pl-'+ei);
   if(!box||!list)return;
-  const eq=getEq(exList[ei]?.name), bar=eq.s||20, v=parseFloat(kg)||0;
-  if(!v||v<bar){box.style.display='none';return}
-  let rem=(v-bar)/2,out=[];
+  const eq=getEq(exList[ei]?.name), v=parseFloat(kg)||0;
+  // What "per side" means depends on the machine:
+  //   barbell / smith  — you log the TOTAL, so take the bar off and halve it
+  //   plate + per side — you already log one side, so that IS the per-side load
+  //   anything else    — a stack or a dumbbell: there are no plates to count
+  let rem;
+  if(eq.t==='barbell'||eq.t==='smith'){
+    const bar=eq.s||20;
+    if(!v||v<=bar){box.style.display='none';return}
+    rem=(v-bar)/2;
+  } else if(eq.t==='plate'&&eq.ps){
+    if(!v){box.style.display='none';return}
+    rem=v;
+  } else { box.style.display='none'; return }
+  let out=[];
   PLATES.forEach(p=>{const n=Math.floor(rem/p);if(n>0){for(let i=0;i<n;i++)out.push(p);rem=Math.round((rem-n*p)*100)/100}});
   box.style.display='block';
   list.innerHTML=out.length
@@ -1345,7 +1481,7 @@ function collect(){
     const tb=document.getElementById('sb-'+i);
     const sets=tb?[...tb.children].map((w,si)=>{
       const W=w.querySelectorAll('.nf')[0],R=w.querySelectorAll('.nf')[1],
-            T=w.querySelector('.ck'),V=w.querySelector('.rpe input'),row=w.querySelector('.st-r');
+            T=w.querySelector('.ck'),V=w.querySelector('.rp input'),row=w.querySelector('.st-r');
       return {reps:R?.value||'',weight:W?.value||'',rpe:V?.value||'',
               done:T?.classList.contains('on')||false,warmup:row?.classList.contains('wu')||false};
     }):[];
@@ -1386,26 +1522,10 @@ function toggleSS(i){
   closeSheet();rebuild(snap);toast('Superset updated');
 }
 function rebuild(snap){
-  exList.forEach((e,i)=>{e._pre=(snap[i]?.sets)||[]});
-  renderExercises();
-  setTimeout(()=>{
-    exList.forEach((e,i)=>{
-      (e._pre||[]).forEach((st,si)=>{
-        const W=document.getElementById(`w-${i}-${si}`),R=document.getElementById(`r-${i}-${si}`),
-              T=document.getElementById(`t-${i}-${si}`),V=document.getElementById(`rv-${i}-${si}`),
-              row=document.getElementById(`sr-${i}-${si}`),n=document.getElementById(`sn-${i}-${si}`);
-        if(W)W.value=st.weight||'';
-        if(R)R.value=st.reps||'';
-        if(st.done&&T){T.classList.add('on');row?.classList.add('done')}
-        if(st.warmup&&row){row.classList.add('wu');if(n)n.textContent='W'}
-        if(st.rpe&&V){V.value=st.rpe;
-          const b=document.querySelectorAll(`#rp-${i}-${si} .rp-b`)[[6,7,8,9,10].indexOf(+st.rpe)];
-          if(b)b.classList.add('on')}
-      });
-      delete e._pre;
-    });
-    saveDraft();
-  },40);
+  exList.forEach((e,i)=>{e._pre=(snap&&snap[i]&&snap[i].sets)||[]});
+  renderExercises();                      // values are written in by addRow
+  exList.forEach(e=>{delete e._pre});
+  saveDraft();                            // one save, once the DOM is whole
 }
 function openAdd(){
   const used=new Set(exList.map(e=>e.name));
@@ -1671,7 +1791,7 @@ function weekRows(startISO){
   const mon=new Date(startISO+'T12:00:00'), t=today();
   return DORDER.map((dow,i)=>{
     const dt=new Date(mon);dt.setDate(mon.getDate()+i);
-    const ds=iso(dt), type=WEEKMAP[dow], p=PROG[type];
+    const ds=iso(dt), slot=WEEKMAP[dow], type=slotOn(dow,ds), p=PROG[type];
     const isToday=ds===t, isRace=ds===RACE.date, past=ds<t;
     const pr=isRun(type)?planRun(ds,type):null;
     const onDay=sessions.filter(s=>s.date===ds);
@@ -1679,7 +1799,7 @@ function weekRows(startISO){
     const anyRun=onDay.find(s=>typeKind(s.type)==='run');
     const anyLift=onDay.find(s=>typeKind(s.type)==='lift');
     const restLog=onDay.some(s=>s.type==='rest');
-    const ok=exact||(isRun(type)&&!!anyRun)||(['fba','fbb'].includes(type)&&!!anyLift);
+    const ok=exact||(isRun(type)&&!!anyRun)||(slot==='lift'&&!!anyLift);
     const miss=!ok&&!restLog&&type!=='rest'&&past;
     const bonus=type==='rest'?(anyRun||anyLift):null;
     let nm,sub,v='',col=p.color;
@@ -1795,7 +1915,8 @@ function renderToday(){
              <p class="hero-sub" style="margin-top:10px">${esc(pr.det)}</p>`
             :`<p class="hero-sub">${p.sub} &middot; ${(p.ex||[]).length} exercises</p>`}
         ${wk?`<div class="notice"><b>Week ${wk.wk}.</b> ${wk.note}</div>`:''}
-        <button class="b b-hot b-wide" style="margin-top:20px" onclick="go('log')">Start</button>
+        <button class="b b-hot b-wide" style="margin-top:20px"
+          onclick="go('log');setTimeout(()=>startSession('${slot}'),60)">Start ${esc(p.label)}</button>
       </div>`;
     }
   }
@@ -1813,7 +1934,7 @@ function renderToday(){
     const missed=(weekRows(a).match(/var\(--warn\)">!/g)||[]).length;
     wkEl.innerHTML=`<div class="band">
       <div class="band-hd"><h2>Week ${wk.wk} of 9</h2>
-        <span class="meta">${runs.length}/3 runs &middot; ${lifts}/2 lifts</span></div>
+        <span class="meta">${runs.length}/${WK_RUNS} runs &middot; ${lifts}/${WK_LIFTS} lifts</span></div>
       <div style="display:flex;align-items:baseline;gap:7px">
         <span class="d" style="font-size:40px">${km.toFixed(1)}</span>
         <span style="font-size:14px;color:var(--ink2);font-weight:550">of ${wk.vol} km</span></div>
@@ -1917,10 +2038,17 @@ function renderLog(){
   if(!actType)buildPicker();
 }
 // ═══ DRAFT ═══
+// Set while the exercise list is being rebuilt. collect() reads the live DOM,
+// so saving mid-render would persist rows that have no values in them yet —
+// which is exactly how a reorder used to wipe a whole session.
+let RENDERING=0;
 function saveDraft(){
+  if(RENDERING)return;
   if(!actType||typeKind(actType)!=='lift')return;
-  sv(K.draft,{type:actType,date:logDate(),ex:exList.map(e=>({name:e.name,ss:e.ss||0})),
-    data:collect(),started:actStart,ts:Date.now()});
+  const data=collect();
+  sv(K.draft,{type:actType,date:logDate(),
+    ex:exList.map((e,i)=>({name:e.name,ss:e.ss||0,n:(data[i]?.sets||[]).length||3})),
+    data,started:actStart,ts:Date.now()});
 }
 function clearDraft(){localStorage.removeItem(K.draft)}
 function restoreDraft(){
@@ -1930,9 +2058,10 @@ function restoreDraft(){
   actStart=d.started||Date.now();
   startSession(d.type);
   if(d.ex&&d.ex.length){
-    exList=d.ex.map(e=>{
+    exList=d.ex.map((e,i)=>{
       const p=findProgEx(e.name)||{};
-      return {name:e.name,sets:3,reps:p.reps||'10–12',eq:getEq(e.name).t,note:p.note||'',...(e.ss?{ss:e.ss}:{})};
+      return {name:e.name,sets:e.n||(d.data?.[i]?.sets||[]).length||3,
+              reps:p.reps||'10–12',eq:getEq(e.name).t,note:p.note||'',...(e.ss?{ss:e.ss}:{})};
     });
   }
   rebuild(d.data||[]);
@@ -2160,8 +2289,14 @@ function renderPlan(){
 
     <div class="band"><div class="eyebrow" style="margin-bottom:6px">Your training week</div>
       <div class="wk">${weekRows(wk.start)}</div>
-      <div class="notice">Heavy legs sit on <b>Monday</b> — furthest from Saturday's long run.
-        <b>Friday</b> is upper-biased so you aren't running long on trashed legs. Wednesday and Sunday are full rest.</div></div>
+      <div class="notice"><b>Push</b> opens the week off a rest day, so the bench is fresh.
+        <b>Legs</b> sits on Wednesday — the day after your quality run, so the hard days stack
+        and three clear days separate it from Saturday's long run. <b>Pull</b> is all upper body,
+        which is why it can sit the night before you run long. Sunday is the rest day; in a heavy
+        week drop Thursday's easy run for a second one.
+        <div style="margin-top:10px">The three lifts <b>rotate on what you actually did</b>, not on
+        the calendar. Train Pull on a rest day and Legs becomes next — the week re-orders itself
+        instead of making you repeat a session.</div></div></div>
 
     <div class="band"><div class="eyebrow" style="margin-bottom:10px">9 weeks to race day</div>
       <table class="tb"><thead><tr><th>Wk</th><th>Dates</th><th style="text-align:right">Volume</th><th style="text-align:right">Long</th></tr></thead><tbody>
